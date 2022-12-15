@@ -1,0 +1,106 @@
+\documentclass[12pt]{book}
+
+%These tell TeX which packages to use.
+\usepackage{array,epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsxtra}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{color}
+\usepackage{eurosym}
+\usepackage{times}
+%Here I define some theorem styles and shortcut commands for symbols I use often
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}{Corollary}
+\newtheorem*{rmk}{Remark}
+\newtheorem{lem}{Lemma}
+\newtheorem*{joke}{Joke}
+\newtheorem{ex}{Example}
+\newtheorem*{soln}{Solution}
+\newtheorem{prop}{Proposition}
+
+\newcommand{\lra}{\longrightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\graph}{\mathrm{graph}}
+\newcommand{\bb}[1]{\mathbb{#1}}
+\newcommand{\Z}{\bb{Z}}
+\newcommand{\Q}{\bb{Q}}
+\newcommand{\R}{\bb{R}}
+\newcommand{\C}{\bb{C}}
+\newcommand{\N}{\bb{N}}
+\newcommand{\M}{\mathbf{M}}
+\newcommand{\m}{\mathbf{m}}
+\newcommand{\MM}{\mathscr{M}}
+\newcommand{\HH}{\mathscr{H}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Ho}{\in\HH(\Om)}
+\newcommand{\bd}{\partial}
+\newcommand{\del}{\partial}
+\newcommand{\bardel}{\overline\partial}
+\newcommand{\textdf}[1]{\textbf{\textsf{#1}}\index{#1}}
+\newcommand{\img}{\mathrm{omega}}
+\newcommand{\ip}[2]{\left\langle{#1},{#2}\right\rangle}
+\newcommand{\inter}[1]{\mathrm{int}{#1}}
+\newcommand{\exter}[1]{\mathrm{ext}{#1}}
+\newcommand{\cl}[1]{\mathrm{cl}{#1}}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\vol}{\mathrm{vol}}
+\newcommand{\cnt}{\mathrm{ct}}
+\newcommand{\osc}{\mathrm{osc}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\UU}{\mathbf{U}}
+\newcommand{\support}{\mathrm{support}}
+\newcommand{\AND}{\;\wedge\;}
+\newcommand{\OR}{\;\vee\;}
+\newcommand{\Oset}{\varnothing}
+\newcommand{\st}{\ni}
+\newcommand{\wh}{\widehat}
+
+%Pagination stuff.
+\setlength{\topmargin}{-.3 in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textheight}{9.in}
+\setlength{\textwidth}{6.5in}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\Large DATA 221 \\  Homework 6  (rev 0)}\\
+\textbf{W. Trimble}\\ %You should put your name here
+Due: Friday 2022-05-20  - 11:59pm
+\end{center}
+
+\vspace{0.2 cm}
+
+\begin{enumerate}
+
+\item
+(Bishop CH 14.11)  Classification tree evaluation
+Consider a data set comprising 400 data points from class C1 and 400 data points from class C2. Suppose that a tree model A splits these into (300,100) at the first leaf node and (100, 300) at the second leaf node, where (n, m) denotes that n points are assigned to C1 and m points are assigned to C2. Similarly, suppose that a second tree model B splits them into (200, 400) and (200, 0). Evaluate the misclassification rates for the two trees and hence show that they are equal. Similarly, evaluate the cross-entropy and Gini index for the two trees and show that they are both lower for tree B than for tree A.
+
+\item
+k-means 
+The "Online Retail II" dataset, credited to Daqing Chen at London South Bank University, is hosted by the UCI machine learning repository contains one million items ordered from an online UK retailer; the sales date from 2009-2011.
+
+\texttt{https://archive.ics.uci.edu/ml/datasets/Online+Retail+II}
+
+Apply reasonable cleaning to this dataset (or a subset of it) and apply k-means clustering for a range of k to a subset of the features. 
+Make a plot of the Bayesian Information Criterion and Akaike Information criterion for the fits as a function of k and choose the best k.
+
+\item
+Produce a visualization of some sort (scatterplot, histogram, or violin plots are reasonable choices) that explains how the clusters differ.  If you don't know where to start, you can look at correlations between indicator variables for the class identity and the features.   
+
+\item
+Plot the receiver operating characteristic curve for identifying "7" vs all other digits for the logistic classifier / single layer perceptron classifier for one of your MNIST digit classifiers.    You want your classifier to cough up a confidence score for 7 vs. other.     Plot the ROC for "0" vs all other digits on the same graph.  
+\end{enumerate}
+\end{document}
+
+
+

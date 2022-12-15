@@ -1,0 +1,139 @@
+\documentclass[12pt]{book}
+
+%These tell TeX which packages to use.
+\usepackage{array,epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsxtra}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{color}
+\usepackage{eurosym}
+\usepackage{times}
+%Here I define some theorem styles and shortcut commands for symbols I use often
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}{Corollary}
+\newtheorem*{rmk}{Remark}
+\newtheorem{lem}{Lemma}
+\newtheorem*{joke}{Joke}
+\newtheorem{ex}{Example}
+\newtheorem*{soln}{Solution}
+\newtheorem{prop}{Proposition}
+
+\newcommand{\lra}{\longrightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\graph}{\mathrm{graph}}
+\newcommand{\bb}[1]{\mathbb{#1}}
+\newcommand{\Z}{\bb{Z}}
+\newcommand{\Q}{\bb{Q}}
+\newcommand{\R}{\bb{R}}
+\newcommand{\C}{\bb{C}}
+\newcommand{\N}{\bb{N}}
+\newcommand{\M}{\mathbf{M}}
+\newcommand{\m}{\mathbf{m}}
+\newcommand{\MM}{\mathscr{M}}
+\newcommand{\HH}{\mathscr{H}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Ho}{\in\HH(\Om)}
+\newcommand{\bd}{\partial}
+\newcommand{\del}{\partial}
+\newcommand{\bardel}{\overline\partial}
+\newcommand{\textdf}[1]{\textbf{\textsf{#1}}\index{#1}}
+\newcommand{\img}{\mathrm{omega}}
+\newcommand{\ip}[2]{\left\langle{#1},{#2}\right\rangle}
+\newcommand{\inter}[1]{\mathrm{int}{#1}}
+\newcommand{\exter}[1]{\mathrm{ext}{#1}}
+\newcommand{\cl}[1]{\mathrm{cl}{#1}}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\vol}{\mathrm{vol}}
+\newcommand{\cnt}{\mathrm{ct}}
+\newcommand{\osc}{\mathrm{osc}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\UU}{\mathbf{U}}
+\newcommand{\support}{\mathrm{support}}
+\newcommand{\AND}{\;\wedge\;}
+\newcommand{\OR}{\;\vee\;}
+\newcommand{\Oset}{\varnothing}
+\newcommand{\st}{\ni}
+\newcommand{\wh}{\widehat}
+
+%Pagination stuff.
+\setlength{\topmargin}{-.3 in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textheight}{9.in}
+\setlength{\textwidth}{6.5in}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\Large DATA 221 \\  Homework 1  (rev 2)}\\
+\textbf{W. Trimble}\\ %You should put your name here
+Due: Friday 2022-04-08 
+\end{center}
+
+\vspace{0.2 cm}
+
+\subsection*{Reading:  MacKay Chapter 2 and 3}
+
+\begin{enumerate}
+\item\label{cheese}
+[Problem 3.3 from Mackay, p.47]
+Unstable particles are emitted from a source and decay at a distance x, a real number that has an exponential probability distribution with characteristic length $\lambda $. Decay events can be observed only if they occur in a window extending from x = 1 cm to x = 20 cm. N decays are observed at locations ${x_1, . . . , x_N }$. Plot the posterior probability density of $\lambda$ for the outcomes of a single event at  ${x_n} =  {5}$   and for six events at ${x_n} =  {1.5,2,3,4,5,12}$ 
+
+% Here events have a probability of decay at distance $x$ proportional to $e^{-x/\lambda } $ where $\lambda$ can be called "characteristic length" or "mean length."
+
+
+\item\label{breaths}
+Let us imagine a magical counter that can measure decays near x=0 and can measure decays infinitely far away from the source (the x=1 cm and x=20 cm window around our observations is gone).  Now our counter has observed the same six events, ${x_n} =  {1.5,2,3,4,5,12}$ but is certain no events occurred outside of those six. 
+
+Using a prior density that is proportional to ${d\lambda }\over {\lambda}$, find 
+\begin{enumerate}
+\item	The most likely value (MAP estimate) for $\lambda$? 
+\item   A 95\% confidence interval for $\lambda$.
+\end{enumerate}
+
+Hint: this is a numerical integration problem.
+
+\item\label{toscientific}
+[Exercise 3.1 from MacKay p.47] 
+
+A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with nonuniform frequency as follows.
+
+\begin{tabular} {l c c c c c c c c c c c c c }
+Symbol& 1& 2 &3 &4 &5 &6 &7 &8 &9 &10 \\
+NumberoffacesofdieA& 6& 4 &3 &2 &1 &1 &1 &1 &1 &0  \\
+NumberoffacesofdieB& 3 &3 &2 &2 &2 &2 &2 &2 &1 &1 \\
+NumberoffacesofdieE& 2 &2 &2 &2 &2 &2 &2& 2& 2& 2 \\
+\end{tabular}
+
+A randomly chosen die, from A or B is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7.
+
+\item 
+A randomly chosen die from these three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
+
+What are the probabilities that the die is die A, B, or E?
+
+\item\label{convert}
+
+What does the zero probability for die A to return a 10 mean for inferences ? 
+
+How many rolls on average would you need to establish 99:1 confidence between B and E? 
+
+Hint: there is a theoretical answer (sums over things) and an attack by simulation.
+
+\item
+Reproduce the three figures in Fig 2.1 and 2.3 in MacKay by downloading The Frequently Asked Questions Manual for Linux (or any other text with more than 30k words), splitting it into two-letter tokens, and counting them.  Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants.  This graph in MacKay is called a "Hinton diagram" but heatmaps or other symbol- or color- encodings to communicate the 2d-histogram are acceptable.  
+
+\item
+Perform an eigenvalue decomposition of one of the 27 x 27 letter occurrence probability matrices and find the eigenvector corresponding to the largest eigenvalue.  This eigenvector is special.  Plot the values of this eigenvector along with sums or probabilities from the bigram density.
+
+\end{enumerate}
+\end{document}
+
+
