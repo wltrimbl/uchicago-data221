@@ -85,7 +85,7 @@ Due: Thursday 2023-01-12  midnight
 \item
 Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen
 (Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
-procuding the following measurements of decay rate as a function of time since the accelerator was turned off.
+producing the following measurements of decay rate as a function of time since the accelerator was turned off.
 
 \begin{tabular}{rr} \\
 time (min) &    Decay rate (arbitrary) \\
@@ -98,16 +98,25 @@ time (min) &    Decay rate (arbitrary) \\
 4.324 & 7.6 \\
 6.229 & 2.5 \\
 \end{tabular}
+
+These numbers are proportional to the numbers of decay events detected in a fixed time interval. 
 We are interested in estimating the decay constant.  
 
-If we belive the function should be 
+If we the function describing the rate is 
 $$ r(t) = A e ^{ - \ln (2) t \over t_{1/2} } + B $$
 where $A$, $t_{1/2}$, and $B$ are constants to be determined,
+\begin{enumerate}
+\item 
 how should you weight the errors at different points?
+\item 
 find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
+\item 
+What do you expect is the sign of the correlation between fitted values of $B$ and fitted values of $t_{1/2}$ ?
+\end{enumerate}
 
 \item\label{breaths}
-[Simplifed version of Problem 3.3 form Mackay, p 47] 
+That was a curve-fitting problem where the measured quantities were rates.  What if the measured quantities were discrete events?
+[Simplified version of Problem 3.3 form Mackay, p 47] 
 "Unstable particles are emitted from a source and decay at a distance $x$, a real number that has an exponential probability distribution with characteristic length $\lambda $."  In other words, $x$ is exponentially distributed.
 Let us imagine a magical counter that can measure decays near x=0 and can measure decays infinitely far away from the source.  The counter observes six events, ${x_n} =  {1.5,2,3,4,5,12}$ and is certain no events occurred outside of those six. 
 
@@ -115,42 +124,52 @@ Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (whic
 \begin{enumerate}
 \item	The most likely value (MAP estimate) for $\lambda$? 
 \item   A 95\% confidence interval for $\lambda$.
-\end{enumerate}
  
-Plot the posterior density for $\lambda$.
+\item Plot the posterior density for $\lambda$.
+
+\end{enumerate}
 
 \item\label{toscientific}
-[Exercise 3.1 from MacKay p.47] 
-
+[Modified from Exercise 3.1 from MacKay p.47] 
 A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with nonuniform frequency as follows.
 
 \begin{tabular} {l c c c c c c c c c c c c c }
 Symbol& 1& 2 &3 &4 &5 &6 &7 &8 &9 &10 \\
-NumberoffacesofdieA& 6& 4 &3 &2 &1 &1 &1 &1 &1 &0  \\
-NumberoffacesofdieB& 3 &3 &2 &2 &2 &2 &2 &2 &1 &1 \\
-NumberoffacesofdieE& 2 &2 &2 &2 &2 &2 &2& 2& 2& 2 \\
+Die A & 6& 4 &3 &2 &1 &1 &1 &1 &1 &0  \\
+Die B & 3 &3 &2 &2 &2 &2 &2 &2 &1 &1 \\
+Die E & 2 &2 &2 &2 &2 &2 &2& 2& 2& 2 \\
 \end{tabular}
 
-A randomly chosen die, from A or B is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7.
+\begin{enumerate}
+\item
+A randomly chosen die from the three is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7.
 
-\item 
+What are the probabilities that the die is die A, B, or E?
+
+
+\item
 A randomly chosen die from these three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
 
 What are the probabilities that the die is die A, B, or E?
 
-\item\label{convert}
+\item
 
 What does the zero probability for die A to return a 10 mean for inferences ? 
 
+\item
 How many rolls on average would you need to establish 99:1 confidence between B and E? 
 
-Hint: there is a theoretical answer (sums over things) and an attack by simulation.
+Hint: there is a theoretical answer (sums over things) and an attack by simulation.  Hint:  This happens at a different rate depending on whether die B or die E is the (unknown) truth.
+\end{enumerate}
 
 \item
 Given a distribution of bigrams in English text, the distribution of initial letter given final and that of the final letter given the initial are different.  
 
-Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu
- \texttt{https://www.gutenberg.org/files/10007/10007-0.txt }.   Count the one-letter tokens.  Split the text into two-letter tokens and count them.  Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants. 
+Reproduce the three figures in Fig 2.1 and 2.3 in MacKay.   (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu, which can be downloaded from Project Gutenberg:
+
+\texttt{https://www.gutenberg.org/files/10007/10007-0.txt }   
+
+To do this, count the one-letter tokens.  Split the text into two-letter tokens and count them, and then find out how to divide-by-columns and divide-by-rows.
 
 \end{enumerate}
 \end{document}
