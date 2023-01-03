@@ -11,6 +11,7 @@
 \usepackage{color}
 \usepackage{eurosym}
 \usepackage{times}
+\usepackage{enumitem}
 %Here I define some theorem styles and shortcut commands for symbols I use often
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}
@@ -82,7 +83,7 @@ Due: Thursday 2023-01-12  midnight
 \subsection*{Reading:  MacKay Chapter 2 and 3}
 
 \begin{enumerate}
-\item Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen, producing the following measurements of decay rate as a function of time since the accelerator was turned off. (Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
+\item  Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen, producing the following measurements of decay rate as a function of time since the accelerator was turned off. (Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
 
 \begin{tabular}{rr} \\
 time (min) &    Decay rate (arbitrary) \\
@@ -96,29 +97,31 @@ time (min) &    Decay rate (arbitrary) \\
 6.229 & 2.5 \\
 \end{tabular}
 
-We are interested in estimating the decay constant.  
+We are interested in estimating the decay constant.  The decay rate numbers originate from counts of decays in a fixed time period.
 
- \begin{enumerate}[a.]
-  \item If we believe the function should be 
+ \begin{enumerate}[label=\alph*)]
+  \item[a.] If we believe the function should be 
  
 $$ r(t) = A e ^{ - \ln (2) t \over t_{1/2} } + B $$
 
-  \item[] where $A$, $t_{1/2}$, and $B$ are constants to be determined, how should you weight the errors at different points?
-  \item Find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
+  \item  where $A$, $t_{1/2}$, and $B$ are constants to be determined, how should you weight the errors at different points?  We don't have access to the actual counts, but we can know (and use) the ratio between the uncertainty of the points.
+  \item  Find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
  \end{enumerate}
 
-\item\label{breaths}
+\item
+That was a curve-fitting problem where the measured quantities were rates.  What if the measured quantities were discrete events?
 
 "Unstable particles are emitted from a source and decay at a distance $x$, a real number that has an exponential probability distribution with characteristic length $\lambda$."  In other words, $x$ is exponentially distributed. Let us imagine a magical counter that can measure decays near $x=0$ and decays infinitely far away from the source. The counter observes six events, ${x_n} =  {1.5,2,3,4,5,12}$, and is certain other events occurred. 
 
-\begin{enumerate}[a.]
-  \item	Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (which is the appropriate prior density for a scale parameter), find the most likely value (MAP estimate) for $\lambda$. In addition, give a 95\% confidence interval for $\lambda$.
-  \item Plot the posterior density for $\lambda$.
+\begin{enumerate}[label=\alph*)]
+  \item 	Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (which is the appropriate prior density for a scale parameter), find and plot the posterior density for $\lambda$. 
+  \item  Give a 95\% confidence interval for $\lambda$.
+  \item  Estimate the mean of the posterior density (by numerical integration).
 \end{enumerate}
- 
-\item[] [Simplifed version of Problem 3.3 from Mackay, p 47.] 
+Hint:  this problem uses a different parameterization for the exponential distribution than the first; Q1 uses half-life; Q2 uses mean-life, which is ln(2) longer. 
+(Simplifed version of Problem 3.3 from Mackay, p 47.)
 
-\item\label{toscientific} A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with non-uniform frequency as follows: 
+\item\label{loadeddie} A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with non-uniform frequency as follows: 
 
 \begin{tabular} {l r r r r r r r r r r r r r}
 Die & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
@@ -129,22 +132,23 @@ E & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 \\
 
 A randomly chosen die from A or B is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7. Then, a randomly chosen die from all three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
 
- \begin{enumerate}[a.]
-   \item What are the probabilities that the die is die A, B, or E?
-   \item\label{convert} What does the zero probability for die A to return a 10 mean for inferences? 
-   \item How many rolls on average would you need to establish 99:1 confidence between B and E? 
+ \begin{enumerate}[label=\alph*)]
+   \item  What are the probabilities that the die is die A, B, or E after the first seven rolls?
+   \item  What are the probabilities that the die is die A, B, or E after rolling the 10?
+   \item  What are the consequences of the zero probability for die A to return a 10 ? 
+   \item  How many rolls on average would you need to establish 99:1 confidence between B and E?  (Hint: there is a theoretical answer (sums over things) but you could get an answer by simulation.)
  \end{enumerate}  
 
-\item[] Hint: there is a theoretical answer (sums over things) and an attack by simulation.
-\item[][Exercise 3.1 from MacKay p.47] 
+(Exercise 3.1 from MacKay p.47)
 
-\item Given a distribution of bigrams in English text, the distribution of initial letter given final and that of the final letter given the initial are different.  
+\item  Given a distribution of bigrams in English text, the distribution of the initial letter given the final and that of the final letter given the initial are different.  
 
- \begin{enumerate}[a.] 
-   \item Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu (\texttt{https://www.gutenberg.org/files/10007/10007-0.txt}).   
-   \item Count the one-letter tokens.  
-   \item Split the text into two-letter tokens and count them.  
-   \item Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants. 
+ \begin{enumerate}[label=\alph*)] 
+   \item  Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu \\
+(\texttt{https://www.gutenberg.org/files/10007/10007-0.txt}).   
+   \item  Count the one-letter tokens.  
+   \item  Split the text into two-letter tokens and count them.  
+   \item  Make a two-dimensional visualization of the bigram frequency, row-marginal, and column-marginal probabilities.  (Hint: one of your visualizations should show that Q is always followed by U) 
  \end{enumerate}  
 
 \end{enumerate}
