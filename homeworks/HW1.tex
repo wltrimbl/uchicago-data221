@@ -74,13 +74,37 @@
 \begin{center}
 {\Large DATA 221   }\\
 \textbf{Trimble/Nussbaum}\\ %You should put your name here
-Due: Thursday 2023-01-12 
+Due: Thursday 2023-01-12  midnight
 \end{center}
 
 \vspace{0.2 cm}
 
 \subsection*{Reading:  MacKay Chapter 2 and 3}
 
+\begin{enumerate}
+\item
+Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen
+(Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
+procuding the following measurements of decay rate as a function of time since the accelerator was turned off.
+
+\begin{tabular}{rr} \\
+time (min) &    Decay rate (arbitrary) \\
+0.161 & 87.1 \\
+0.578 & 69.7 \\
+1.113 & 51.5 \\
+1.584 & 38.3 \\
+2.226 & 25.3 \\
+3.061 & 15.8 \\
+4.324 & 7.6 \\
+6.229 & 2.5 \\
+\end{tabular}
+We are interested in estimating the decay constant.  
+
+If we belive the function should be 
+$$ r(t) = A e ^{ - \ln (2) t \over t_{1/2} } + B $$
+where $A$, $t_{1/2}$, and $B$ are constants to be determined,
+how should you weight the errors at different points?
+find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
 
 \item\label{breaths}
 [Simplifed version of Problem 3.3 form Mackay, p 47] 
@@ -123,9 +147,10 @@ How many rolls on average would you need to establish 99:1 confidence between B 
 Hint: there is a theoretical answer (sums over things) and an attack by simulation.
 
 \item
-Reproduce the three figures (called Hinton diagrams) in Fig 2.1 and 2.3 in MacKay by downloading The Frequently Asked Questions Manual for Linux (or any other text with more than 30k words), splitting it into two-letter tokens, and counting them.  Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants.  This graph in MacKay is called a "Hinton diagram" but heatmaps or other symbol- or color- encodings to communicate the 2d-histogram are acceptable.  
+Given a distribution of bigrams in English text, the distribution of initial letter given final and that of the final letter given the initial are different.  
 
-\item
+Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu
+ \texttt{https://www.gutenberg.org/files/10007/10007-0.txt }.   Count the one-letter tokens.  Split the text into two-letter tokens and count them.  Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants. 
 
 \end{enumerate}
 \end{document}
