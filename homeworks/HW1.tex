@@ -82,10 +82,7 @@ Due: Thursday 2023-01-12  midnight
 \subsection*{Reading:  MacKay Chapter 2 and 3}
 
 \begin{enumerate}
-\item
-Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen
-(Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
-procuding the following measurements of decay rate as a function of time since the accelerator was turned off.
+\item Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen, producing the following measurements of decay rate as a function of time since the accelerator was turned off. (Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
 
 \begin{tabular}{rr} \\
 time (min) &    Decay rate (arbitrary) \\
@@ -98,59 +95,57 @@ time (min) &    Decay rate (arbitrary) \\
 4.324 & 7.6 \\
 6.229 & 2.5 \\
 \end{tabular}
+
 We are interested in estimating the decay constant.  
 
-If we belive the function should be 
+ \begin{enumerate}[a.]
+  \item If we believe the function should be 
+ 
 $$ r(t) = A e ^{ - \ln (2) t \over t_{1/2} } + B $$
-where $A$, $t_{1/2}$, and $B$ are constants to be determined,
-how should you weight the errors at different points?
-find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
+
+  \item[] where $A$, $t_{1/2}$, and $B$ are constants to be determined, how should you weight the errors at different points?
+  \item Find the maximum a posteriori value (the value corresponding to the  maximum of the posterior density) for $t_{1/2} $ by optimization.
+ \end{enumerate}
 
 \item\label{breaths}
-[Simplifed version of Problem 3.3 form Mackay, p 47] 
-"Unstable particles are emitted from a source and decay at a distance $x$, a real number that has an exponential probability distribution with characteristic length $\lambda $."  In other words, $x$ is exponentially distributed.
-Let us imagine a magical counter that can measure decays near x=0 and can measure decays infinitely far away from the source.  The counter observes six events, ${x_n} =  {1.5,2,3,4,5,12}$ and is certain no events occurred outside of those six. 
 
-Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (which is the appropriate prior density for a scale parameter), find 
-\begin{enumerate}
-\item	The most likely value (MAP estimate) for $\lambda$? 
-\item   A 95\% confidence interval for $\lambda$.
+"Unstable particles are emitted from a source and decay at a distance $x$, a real number that has an exponential probability distribution with characteristic length $\lambda$."  In other words, $x$ is exponentially distributed. Let us imagine a magical counter that can measure decays near $x=0$ and decays infinitely far away from the source. The counter observes six events, ${x_n} =  {1.5,2,3,4,5,12}$, and is certain other events occurred. 
+
+\begin{enumerate}[a.]
+  \item	Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (which is the appropriate prior density for a scale parameter), find the most likely value (MAP estimate) for $\lambda$. In addition, give a 95\% confidence interval for $\lambda$.
+  \item Plot the posterior density for $\lambda$.
 \end{enumerate}
  
-Plot the posterior density for $\lambda$.
+\item[] [Simplifed version of Problem 3.3 from Mackay, p 47.] 
 
-\item\label{toscientific}
-[Exercise 3.1 from MacKay p.47] 
+\item\label{toscientific} A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with non-uniform frequency as follows: 
 
-A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with nonuniform frequency as follows.
-
-\begin{tabular} {l c c c c c c c c c c c c c }
-Symbol& 1& 2 &3 &4 &5 &6 &7 &8 &9 &10 \\
-NumberoffacesofdieA& 6& 4 &3 &2 &1 &1 &1 &1 &1 &0  \\
-NumberoffacesofdieB& 3 &3 &2 &2 &2 &2 &2 &2 &1 &1 \\
-NumberoffacesofdieE& 2 &2 &2 &2 &2 &2 &2& 2& 2& 2 \\
+\begin{tabular} {l r r r r r r r r r r r r r}
+Die & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+A & 6 & 4 & 3 & 2 & 1 & 1 & 1 & 1 & 1 & 0  \\
+B & 3 & 3 & 2 & 2 & 2 & 2 & 2 & 2 & 1 & 1 \\
+E & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 \\
 \end{tabular}
 
-A randomly chosen die, from A or B is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7.
+A randomly chosen die from A or B is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7. Then, a randomly chosen die from all three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
 
-\item 
-A randomly chosen die from these three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
+ \begin{enumerate}[a.]
+   \item What are the probabilities that the die is die A, B, or E?
+   \item\label{convert} What does the zero probability for die A to return a 10 mean for inferences? 
+   \item How many rolls on average would you need to establish 99:1 confidence between B and E? 
+ \end{enumerate}  
 
-What are the probabilities that the die is die A, B, or E?
+\item[] Hint: there is a theoretical answer (sums over things) and an attack by simulation.
+\item[][Exercise 3.1 from MacKay p.47] 
 
-\item\label{convert}
+\item Given a distribution of bigrams in English text, the distribution of initial letter given final and that of the final letter given the initial are different.  
 
-What does the zero probability for die A to return a 10 mean for inferences ? 
-
-How many rolls on average would you need to establish 99:1 confidence between B and E? 
-
-Hint: there is a theoretical answer (sums over things) and an attack by simulation.
-
-\item
-Given a distribution of bigrams in English text, the distribution of initial letter given final and that of the final letter given the initial are different.  
-
-Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu
- \texttt{https://www.gutenberg.org/files/10007/10007-0.txt }.   Count the one-letter tokens.  Split the text into two-letter tokens and count them.  Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants. 
+ \begin{enumerate}[a.] 
+   \item Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu (\texttt{https://www.gutenberg.org/files/10007/10007-0.txt}).   
+   \item Count the one-letter tokens.  
+   \item Split the text into two-letter tokens and count them.  
+   \item Make a two-dimensional visualization of the bigrams, the row-marginal, and column-marginal variants. 
+ \end{enumerate}  
 
 \end{enumerate}
 \end{document}
