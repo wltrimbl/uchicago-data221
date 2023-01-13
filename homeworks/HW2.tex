@@ -75,7 +75,7 @@
 \begin{document}
 
 \begin{center}
-{\Large DATA 221 \\  Homework 2  (rev 0)}\\
+{\Large DATA 221 \\  Homework 2  (rev 1)}\\
 \textbf{W. Trimble}\\ %You should put your name here
 Due: 11:59pm  Thursday 2023-01-19 
 \end{center}
@@ -155,45 +155,45 @@ Here you can either plot the boundaries by finding the equations for the boundar
 \end{enumerate}
 
 
-\item\label{normal}
-\textbf{\sout{Bivariate normal properties NO NO NO }}
-Given a two-dimensional multivariate Gaussian distribution centered on (0,0) : 
+% \item\label{normal}
+% \textbf{\sout{Bivariate normal properties NO NO NO }}
+% Given a two-dimensional multivariate Gaussian distribution centered on (0,0) : 
 
-$$ \mathcal{N} ( \mathbf{x} ; \mathbf{\Sigma} ) =
-{ 1 \over( 2 \pi  ) }  
-{ 1 \over ( \sigma_{11}^2\sigma_{22}^2 - \sigma_{12}^2 )   }
-\exp  - { 1 \over 2} (
-\begin{bmatrix}
-x_0, & x_1
-\end{bmatrix}
-\begin{bmatrix}
-\sigma_{11}^2 & \sigma_{12}^2\\
-\sigma_{12}^2 & \sigma_{22}^2
-\end{bmatrix}^{-1}
-\begin{bmatrix}
-x_0 \\
-x_1
-\end{bmatrix} ) $$
+%$$ \mathcal{N} ( \mathbf{x} ; \mathbf{\Sigma} ) =
+%{ 1 \over( 2 \pi  ) }  
+%{ 1 \over ( \sigma_{11}^2\sigma_{22}^2 - \sigma_{12}^2 )   }
+%\exp  - { 1 \over 2} (
+%\begin{bmatrix}
+%x_0, & x_1
+%\end{bmatrix}
+%\begin{bmatrix}
+%\sigma_{11}^2 & \sigma_{12}^2\\
+%\sigma_{12}^2 & \sigma_{22}^2
+%\end{bmatrix}^{-1}
+%\begin{bmatrix}
+%x_0 \\
+%x_1
+%\end{bmatrix} ) $$
 
-There are two linear combinations of $x_1$ and $x_2$ that maximize (minimize) the variance of the sums
-and at the same time make the two sums independent of each other.
+%There are two linear combinations of $x_1$ and $x_2$ that maximize (minimize) the variance of the sums
+%and at the same time make the two sums independent of each other.
 
-We can parameterize all possible sums of f $x_1$ and $x_2$  with $\theta$ : 
+%We can parameterize all possible sums of f $x_1$ and $x_2$  with $\theta$ : 
 
-$e_1 = \begin{pmatrix} 
-cos \theta \\
-sin \theta   \\
-\end{pmatrix} $ 
-and 
- $e_2 = \begin{pmatrix} 
--sin \theta \\
-cos \theta   \\
-\end{pmatrix} $ 
+%$e_1 = \begin{pmatrix} 
+%cos \theta \\
+%sin \theta   \\
+%\end{pmatrix} $ 
+%and 
+% $e_2 = \begin{pmatrix} 
+%-sin \theta \\
+%cos \theta   \\
+%\end{pmatrix} $ 
 
-$$ z_1 = e_1 \cdot x $$
-and
-$$ z_2 = e_2 \cdot x $$
-Find the value of $\theta$ which makes the covariance between  $z_1$ and $z_2$ vanish.  Find the standard deviations of $z_1$ and $z_2$.
+%$$ z_1 = e_1 \cdot x $$
+%and
+%$$ z_2 = e_2 \cdot x $$
+%Find the value of $\theta$ which makes the covariance between  $z_1$ and $z_2$ vanish.  Find the standard deviations of $z_1$ and $z_2$.
 
 
 
