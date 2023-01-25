@@ -1,0 +1,6 @@
+This dataset was included in the R package DALEX; it appears to date to 2016, where it was created by augmenting an older titanic3 dataset with the crew fates.
+
+https://cran.r-project.org/web/packages/DALEX/index.html
+
+https://modeloriented.github.io/EIX/reference/titanic_data.html
+
