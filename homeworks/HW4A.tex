@@ -74,39 +74,39 @@
 \begin{center}
 {\Large DATA 221 \\  Homework 4  (rev 0)}\\
 \textbf{Trimble/Nussbaum}\\ %You should put your name here
-Due: Friday 2023-02-02 
+Due: Friday 2023-02-03 
 \end{center}
 
 \vspace{0.2 cm}
+In the last homework, you generated two lumpy distributionis that were mixtures of multivariate normal samples in 2d.
+Using this distribution, we can reproduce the graph of accuracy vs model complexity of kNN classification :
 
-Using the distribution of orange and blue data points from a mixture-of-10-normals model from HW3:
-
-\includegraphics[width=3in]{src/hastie-bayesian.png}
+% \includegraphics[width=3in]{src/hastie-bayesian.png}
+\includegraphics[width=4in]{src/hastie-generalization.png}
 
 \begin{enumerate}
 \item
 Perform k-nearest-neighbor classification for at least six values of $k$ ranging from 1 to 100; use the neighbors of each point to predict the class identity.  Evaluate accuracy as a function of $k$ for the training set (with 200 points).
 
 \item
-Generate a large "testing" sample of 10,000 points from each class.
-Evaluate the accuracy of KNN classification (trained on the 200-point training set)  as a function of $k$ for the 20,000 points in the test set and plot the accuracy vs. $k$ for the training and the testing data on the same graph.   
+Generate a large "testing" sample of 10,000 points from each class.  (This large set of points for evaluation causes the ${1 \over \sqrt{N} }$ sampling-based uncertainty in the correctly-classified proportion to be small, $ \sim 1\%$.) Evaluate the accuracy of KNN classification (trained on the 200-point training set)  as a function of $k$ for the 20,000 points in the test set and plot the accuracy vs. $k$ for the training and the testing data on the same graph.   
 
-\includegraphics[width=4in]{src/hastie-generalization.png}
 
 %  Looking at the UCI "default of credit card clients Data Set" contains various fields describing 30,000 credit card customers in Taiwan in 2005. (Yeh \& Lien,  doi://10.1016/j.eswa.2007.12.020)   
 
-\item 
+% \item 
 %  Try to predict the \texttt{default.payment.next.month} using KNN classifiers for four different values of $k$.
-PLACEHOLDER for tuning threshold / communicating accuracy for two-category problem.
+% PLACEHOLDER for tuning threshold / communicating accuracy for two-category problem.
 
 %You have to choose how to measure distance in a vector space that includes indicator variables and payment amounts (\$NT 100k).  
 
 %Report accuracy on the testing and training datasets.
 
-\texttt{https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients}
+% \texttt{https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients}
 
-\item
-Compare the KNN accuracy to the accuracy of logistic x 
+% \item
+% Compare the KNN accuracy to the accuracy of logistic x 
+
 \end{enumerate}
 \end{document}
 
