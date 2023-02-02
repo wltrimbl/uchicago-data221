@@ -42,7 +42,7 @@ knitr::opts_chunk$set(
 
 A Kaggle user has created a [dataset with over 20,000 recipes from the website Epicurious](https://www.kaggle.com/datasets/hugodarwood/epirecipes/code). Loosely speaking, there are a few groups of variables in the dataset:
   
-* The outcome of interest (`X.cakeweek`, whether a recipe was part of Epicurious Cake Week)
+* The outcome of interest (`cake`, whether a recipe is tagged as a cake)
 * The nutritional variables (`calories`, `protein`, `fat`, `sodium`)
 * Ingredient tags (`almond`, `amaretto`, `anchovy`, and so on)
 * Place tags (`alabama`, `alaska`, `aspen`, `australia`, and so forth)
