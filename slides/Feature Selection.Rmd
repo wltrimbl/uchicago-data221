@@ -1,0 +1,1101 @@
+---
+title: "DATA 221"
+subtitle: "Feature Selection in Machine Learning"
+date: "2023-02-02"
+format: 
+  beamer: 
+    aspectratio: 169
+    theme: Berkeley
+    colortheme: beaver
+    slide-level: 2
+    classoption: t
+    section-titles: false
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, tidy = TRUE, fig.align = "center")
+library(reticulate)
+library(tidyr)
+
+set.seed(519)
+#use_python("/usr/local/bin/python3")
+#use_condaenv("py3.10", required = TRUE)
+```
+
+# Model Selection
+
+## Model Selection
+
+We might also want to compare multiple models to each other. In this case, we can use various measures of model fit. 
+
+* $r^2$
+* Adjusted $r^2$
+* Akaike Information Criterion (AIC) 
+* Bayesian Information Criterion (BIC) 
+
+## $r^2$
+
+* You may have seen $r^2$ in another class. 
+* The formula for $r^2$ is:
+
+$$r^{2}=1-\frac{\sum_{i = 1}^n (y_i - \hat{y})^2}{\sum_{i = 1}^n(y_i - \bar{y})^2} = 1 - \frac{SS_{error}}{SS_{total}}$$
+
+* $r^2$ has the benefit of having a nice interpretation--it is the proportion of variation in the response variable that can be explained by the model. 
+* **$r^2$ always falls between 0 and 1, with values closer to 1 being more desirable.**
+
+## Adjusted $r^2$
+
+* A disadvantage of $r^2$ (and in statistics, we would consider it a fairly large disadvantage) is that it always increases when you add a predictor to your model, even if the predictor doesn't make any sense in the context of your data. 
+* To counter this disadvantage, we can use something called adjusted $r^2$--the adjustment is tied to the number of parameters in your model. 
+* The formula for adjusted $r^2$ is:
+
+$$r^{2}_{adj.}= 1 - \frac{SS_{error}/(n-p)}{SS_{total}/(n-1)}$$
+
+* **Adjusted $r^2$ always falls between 0 and 1, with values closer to 1 being more desirable.**
+
+## AIC
+
+* Unlike $r^2$ and adjusted $r^2$, the Akaike Information Criterion is related to the likelihood of the data (so you do have to assume a likelihood function).
+* The equation for AIC is given by
+
+$$\mathrm {AIC} \,=\,2k-2\ln({\hat {L}}).$$
+
+* The $2k$ penalty discourages overfitting relative to maximizing "goodness of fit" as measured by $\hat{L}$, the likelihood function of the data.  
+
+* This formula is derived from estimated Kullback-Leibler divergence (!!)--we can think of it as measuring information lost from a perfect model.  
+
+* **There is no "scale" for AIC! You have to compare it to the AIC for another model fit from the same data. Smaller values are more desirable.**
+
+## BIC
+
+* The Bayesian Information Criterion (BIC) is related to AIC (a.k.a., also has a likelihood). 
+* The equation for BIC is given by
+
+$$\mathrm {BIC} =k\ln(n)-2\ln({\widehat {L}}).$$
+
+* Once again, there is a penalty that discourages overfitting relative to maximizing the likelihood.
+
+* This formula is derived from the Bayesian belief that $p(\theta|\mathbf{x}) \propto L(\mathbf{x}| \theta) p(\theta)$.
+
+* **There is no scale for BIC! You have to compare it to the BIC for another model fit from the same data. Smaller values are more desirable.**
+
+## AUC 
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+* AUC stands for **A**rea **U**nder the (receiver operating characteristic) **C**urve.
+* The ROC curve plots sensitivity (true positive rate) against 1 - specificity (true negative rate) at various thresholds. 
+* **AUC always falls between 0 and 1, with values closer to 1 being more desirable.** 
+
+* ``
+
+:::
+
+::: {.column width="50%"}
+
+```{r, echo = FALSE, fig.height = 2.5, fig.width = 2.5}
+library(cvAUC)
+library(dplyr)
+library(ggplot2)
+library(pROC)
+
+resumes <- read.csv("https://vincentarelbundock.github.io/Rdatasets/csv/AER/ResumeNames.csv", stringsAsFactors = TRUE)[,-1]
+
+resumes <- resumes %>%
+  mutate(call = as.numeric(call) - 1)
+
+resumes_num <- resumes  %>% 
+  mutate_if(is.factor, as.numeric)
+
+resume_model <- glm(as.numeric(call) ~ gender + ethnicity + jobs + experience, family=binomial(link='logit'), data = resumes)
+
+resume_pred <- predict(resume_model, type = "response")
+
+roc_resumes <- roc(resumes$call, resume_pred)
+
+resumes_auc1 <- AUC(resume_pred, resumes$call)
+
+ggroc(roc_resumes) +
+  xlab("Specificity") +
+  ylab("Sensitivity") + 
+  annotate("text", x = 0.4, y = 0.2, label = paste("AUC = ", round(resumes_auc1, digits = 3), sep = " "), size = 4)
+```
+
+:::
+
+::::
+
+## Cross Validation
+
+* Most of these model fit statistics are calculated using the training data. 
+* We are often more concerned with how the model might perform on a test dataset--in that case, we could use 
+CV to estimate the testing error. 
+
+```{r echo = FALSE, fig.height = 3}
+library(ggplot2)
+library(ggpubr)
+library(latex2exp)
+
+reg_df <- as.data.frame(cbind(rep(1:5, times = 5), rep(5:1, each = 5)))
+
+p1 <- ggplot(data = reg_df, aes(x = x, y = y)) +
+  annotate("text", x = 0, y = 6, label = TeX("$i$"), size = 3) +
+  annotate("text", x = 1, y = 6, label = TeX("$y_{i}$"), size = 3) +
+  annotate("text", x = 2, y = 6, label = TeX("$x_{i1}$"), size = 3) +
+  annotate("text", x = 3, y = 6, label = TeX("$x_{i2}$"), size = 3) +
+  annotate("text", x = 4, y = 6, label = TeX("$\\cdots$"), size = 3) +
+  annotate("text", x = 5, y = 6, label = TeX("$x_{ip}$"), size = 3) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.5, yend = 5.5) +
+  annotate("text", x = 0, y = 5.3, label = TeX("$1$"), size = 1) +
+  annotate("text", x = 1, y = 5.3, label = TeX("$y_{1}$"), size = 1) +
+  annotate("text", x = 2, y = 5.3, label = TeX("$x_{11}$"), size = 1) +
+  annotate("text", x = 3, y = 5.3, label = TeX("$x_{12}$"), size = 1) +
+  annotate("text", x = 4, y = 5.3, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 5.3, label = TeX("$x_{1p}$"), size = 1) +
+  annotate("text", x = 0, y = 5.0, label = TeX("$2$"), size = 1) +
+  annotate("text", x = 1, y = 5.0, label = TeX("$y_{2}$"), size = 1) +
+  annotate("text", x = 2, y = 5.0, label = TeX("$x_{21}$"), size = 1) +
+  annotate("text", x = 3, y = 5.0, label = TeX("$x_{22}$"), size = 1) +
+  annotate("text", x = 4, y = 5.0, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 5.0, label = TeX("$x_{2p}$"), size = 1) +
+  annotate("text", x = 0, y = 4.7, label = TeX("$3$"), size = 1) +
+  annotate("text", x = 1, y = 4.7, label = TeX("$y_{3}$"), size = 1) +
+  annotate("text", x = 2, y = 4.7, label = TeX("$x_{31}$"), size = 1) +
+  annotate("text", x = 3, y = 4.7, label = TeX("$x_{32}$"), size = 1) +
+  annotate("text", x = 4, y = 4.7, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 4.7, label = TeX("$x_{3p}$"), size = 1) +
+  annotate("text", x = 0, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 1, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 2, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 3, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 4, y = 4.4, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 0, y = 4.1, label = TeX("$n/k$"), size = 1) +
+  annotate("text", x = 1, y = 4.1, label = TeX("$y_{n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 4.1, label = TeX("$x_{n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 4.1, label = TeX("$x_{n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 4.1, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 4.1, label = TeX("$x_{n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 3.8, label = TeX("$1+n/k$"), size = 1) +
+  annotate("text", x = 1, y = 3.8, label = TeX("$y_{1+n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 3.8, label = TeX("$x_{1+n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 3.8, label = TeX("$x_{1+n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 3.8, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 3.8, label = TeX("$x_{1+n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 1, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 2, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 3, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 4, y = 3.5, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 0, y = 3.2, label = TeX("$2n/k$"), size = 1) +
+  annotate("text", x = 1, y = 3.2, label = TeX("$y_{2n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 3.2, label = TeX("$x_{2n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 3.2, label = TeX("$x_{2n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 3.2, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 3.2, label = TeX("$x_{2n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 2.9, label = TeX("$1+2n/k$"), size = 1) +
+  annotate("text", x = 1, y = 2.9, label = TeX("$y_{1+2n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 2.9, label = TeX("$x_{1+2n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 2.9, label = TeX("$x_{1+2n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 2.9, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 2.9, label = TeX("$x_{1+2n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 1, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 2, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 3, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 4, y = 2.6, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 0, y = 2.3, label = TeX("$3n/k$"), size = 1) +
+  annotate("text", x = 1, y = 2.3, label = TeX("$y_{3n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 2.3, label = TeX("$x_{3n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 2.3, label = TeX("$x_{3n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 2.3, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 2.3, label = TeX("$x_{3n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 1, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 2, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 3, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 4, y = 1.95, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 0, y = 1.6, label = TeX("$(n-1)n/k$"), size = 1) +
+  annotate("text", x = 1, y = 1.6, label = TeX("$y_{(n-1)n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 1.6, label = TeX("$x_{(n-1)n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 1.6, label = TeX("$x_{(n-1)n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 1.6, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 1.6, label = TeX("$x_{(n-1)n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 1.3, label = TeX("$1+(n-1)n/k$"), size = 1) +
+  annotate("text", x = 1, y = 1.3, label = TeX("$y_{1+(n-1)n/k}$"), size = 1) +
+  annotate("text", x = 2, y = 1.3, label = TeX("$x_{1+(n-1)n/k,1}$"), size = 1) +
+  annotate("text", x = 3, y = 1.3, label = TeX("$x_{1+(n-1)n/k,2}$"), size = 1) +
+  annotate("text", x = 4, y = 1.3, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 1.3, label = TeX("$x_{1+(n-1)n/k,p}$"), size = 1) +
+  annotate("text", x = 0, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 1, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 2, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 3, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 4, y = 1.0, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90') +
+  annotate("text", x = 0, y = 0.7, label = TeX("$n$"), size = 1) +
+  annotate("text", x = 1, y = 0.7, label = TeX("$y_{n}$"), size = 1) +
+  annotate("text", x = 2, y = 0.7, label = TeX("$x_{n1}$"), size = 1) +
+  annotate("text", x = 3, y = 0.7, label = TeX("$x_{n2}$"), size = 1) +
+  annotate("text", x = 4, y = 0.7, label = TeX("$\\cdots$"), size = 1) +
+  annotate("text", x = 5, y = 0.7, label = TeX("$x_{np}$"), size = 1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.5, yend = 0.5) +
+  scale_x_continuous("", limits = c(-0.5, 5.5)) +
+  scale_y_continuous("", limits = c(-0.5, 6.5)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+p2 <- ggplot(data = reg_df, aes(x = x, y = y)) +
+  annotate("text", x = 0, y = 6, label = TeX("$i$"), size = 3) +
+  annotate("text", x = 1, y = 6, label = TeX("$y_{i}$"), size = 3) +
+  annotate("text", x = 2, y = 6, label = TeX("$x_{i1}$"), size = 3) +
+  annotate("text", x = 3, y = 6, label = TeX("$x_{i2}$"), size = 3) +
+  annotate("text", x = 4, y = 6, label = TeX("$\\cdots$"), size = 3) +
+  annotate("text", x = 5, y = 6, label = TeX("$x_{ip}$"), size = 3) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.5, yend = 5.5) +
+  annotate("text", x = 0, y = 5.3, label = TeX("$1$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 5.3, label = TeX("$y_{1}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 5.3, label = TeX("$x_{11}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 5.3, label = TeX("$x_{12}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 5.3, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 5.3, label = TeX("$x_{1p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 5.0, label = TeX("$2$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 5.0, label = TeX("$y_{2}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 5.0, label = TeX("$x_{21}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 5.0, label = TeX("$x_{22}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 5.0, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 5.0, label = TeX("$x_{2p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 4.7, label = TeX("$3$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 4.7, label = TeX("$y_{3}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 4.7, label = TeX("$x_{31}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 4.7, label = TeX("$x_{32}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 4.7, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 4.7, label = TeX("$x_{3p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 1, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 2, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 3, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 4, y = 4.4, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 0, y = 4.1, label = TeX("$n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 4.1, label = TeX("$y_{n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 4.1, label = TeX("$x_{n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 4.1, label = TeX("$x_{n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 4.1, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 4.1, label = TeX("$x_{n/k,p}$"), size = 1, color = "gray") +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.3, yend = 5.3, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.0, yend = 5.0, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 4.7, yend = 4.7, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 4.4, yend = 4.4, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 4.1, yend = 4.1, color = "gray", size = 0.1) +
+  annotate("text", x = -0.65, y = 4.7, label = paste("Fold ", TeX("$1$"), sep = ""), angle='90', color = "gray", size = 1) +
+  annotate("text", x = 0, y = 3.8, label = TeX("$1+n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 3.8, label = TeX("$y_{1+n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 3.8, label = TeX("$x_{1+n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 3.8, label = TeX("$x_{1+n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 3.8, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 3.8, label = TeX("$x_{1+n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 1, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 2, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 3, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 4, y = 3.5, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 0, y = 3.2, label = TeX("$2n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 3.2, label = TeX("$y_{2n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 3.2, label = TeX("$x_{2n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 3.2, label = TeX("$x_{2n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 3.2, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 3.2, label = TeX("$x_{2n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 2.9, label = TeX("$1+2n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 2.9, label = TeX("$y_{1+2n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 2.9, label = TeX("$x_{1+2n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 2.9, label = TeX("$x_{1+2n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 2.9, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 2.9, label = TeX("$x_{1+2n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 1, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 2, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 3, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 4, y = 2.6, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 0, y = 2.3, label = TeX("$3n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 2.3, label = TeX("$y_{3n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 2.3, label = TeX("$x_{3n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 2.3, label = TeX("$x_{3n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 2.3, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 2.3, label = TeX("$x_{3n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 1, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 2, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 3, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 4, y = 1.95, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 0, y = 1.6, label = TeX("$(n-1)n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 1.6, label = TeX("$y_{(n-1)n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 1.6, label = TeX("$x_{(n-1)n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 1.6, label = TeX("$x_{(n-1)n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 1.6, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 1.6, label = TeX("$x_{(n-1)n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 1.3, label = TeX("$1+(n-1)n/k$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 1.3, label = TeX("$y_{1+(n-1)n/k}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 1.3, label = TeX("$x_{1+(n-1)n/k,1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 1.3, label = TeX("$x_{1+(n-1)n/k,2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 1.3, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 1.3, label = TeX("$x_{1+(n-1)n/k,p}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 0, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 1, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 2, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 3, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 4, y = 1.0, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#F8766D") +
+  annotate("text", x = 0, y = 0.7, label = TeX("$n$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 1, y = 0.7, label = TeX("$y_{n}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 2, y = 0.7, label = TeX("$x_{n1}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 3, y = 0.7, label = TeX("$x_{n2}$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 4, y = 0.7, label = TeX("$\\cdots$"), size = 1, color = "#F8766D") +
+  annotate("text", x = 5, y = 0.7, label = TeX("$x_{np}$"), size = 1, color = "#F8766D") +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.5, yend = 0.5) +
+  scale_x_continuous("", limits = c(-0.5, 5.5)) +
+  scale_y_continuous("", limits = c(-.5, 6.5)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+p3 <- ggplot(data = reg_df, aes(x = x, y = y)) +
+  annotate("text", x = 0, y = 6, label = TeX("$i$"), size = 3) +
+  annotate("text", x = 1, y = 6, label = TeX("$y_{i}$"), size = 3) +
+  annotate("text", x = 2, y = 6, label = TeX("$x_{i1}$"), size = 3) +
+  annotate("text", x = 3, y = 6, label = TeX("$x_{i2}$"), size = 3) +
+  annotate("text", x = 4, y = 6, label = TeX("$\\cdots$"), size = 3) +
+  annotate("text", x = 5, y = 6, label = TeX("$x_{ip}$"), size = 3) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.5, yend = 5.5) +
+  annotate("text", x = 0, y = 5.3, label = TeX("$1$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 5.3, label = TeX("$y_{1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 5.3, label = TeX("$x_{11}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 5.3, label = TeX("$x_{12}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 5.3, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 5.3, label = TeX("$x_{1p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 5.0, label = TeX("$2$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 5.0, label = TeX("$y_{2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 5.0, label = TeX("$x_{21}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 5.0, label = TeX("$x_{22}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 5.0, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 5.0, label = TeX("$x_{2p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 4.7, label = TeX("$3$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 4.7, label = TeX("$y_{3}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 4.7, label = TeX("$x_{31}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 4.7, label = TeX("$x_{32}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 4.7, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 4.7, label = TeX("$x_{3p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 1, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 2, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 3, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 4, y = 4.4, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 0, y = 4.1, label = TeX("$n/k$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 4.1, label = TeX("$y_{n/k}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 4.1, label = TeX("$x_{n/k,1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 4.1, label = TeX("$x_{n/k,2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 4.1, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 4.1, label = TeX("$x_{n/k,p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 3.8, label = TeX("$1+n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 3.8, label = TeX("$y_{1+n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 3.8, label = TeX("$x_{1+n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 3.8, label = TeX("$x_{1+n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 3.8, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 3.8, label = TeX("$x_{1+n/k,p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 1, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 2, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 3, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 4, y = 3.5, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 0, y = 3.2, label = TeX("$2n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 3.2, label = TeX("$y_{2n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 3.2, label = TeX("$x_{2n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 3.2, label = TeX("$x_{2n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 3.2, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 3.2, label = TeX("$x_{2n/k,p}$"), size = 1, color = "gray") +
+  geom_segment(x = -0.5, xend = 5.5, y = 3.8, yend = 3.8, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 3.5, yend = 3.5, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 3.2, yend = 3.2, color = "gray", size = 0.1) +
+  annotate("text", x = -0.65, y = 3.5, label = paste("Fold ", TeX("$2$"), sep = ""), angle='90', color = "gray", size = 1) +
+  annotate("text", x = 0, y = 2.9, label = TeX("$1+2n/k$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 2.9, label = TeX("$y_{1+2n/k}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 2.9, label = TeX("$x_{1+2n/k,1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 2.9, label = TeX("$x_{1+2n/k,2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 2.9, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 2.9, label = TeX("$x_{1+2n/k,p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 1, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 2, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 3, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 4, y = 2.6, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 0, y = 2.3, label = TeX("$3n/k$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 2.3, label = TeX("$y_{3n/k}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 2.3, label = TeX("$x_{3n/k,1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 2.3, label = TeX("$x_{3n/k,2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 2.3, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 2.3, label = TeX("$x_{3n/k,p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 1, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 2, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 3, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 4, y = 1.95, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 0, y = 1.6, label = TeX("$(n-1)n/k$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 1.6, label = TeX("$y_{(n-1)n/k}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 1.6, label = TeX("$x_{(n-1)n/k,1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 1.6, label = TeX("$x_{(n-1)n/k,2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 1.6, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 1.6, label = TeX("$x_{(n-1)n/k,p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 1.3, label = TeX("$1+(n-1)n/k$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 1.3, label = TeX("$y_{1+(n-1)n/k}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 1.3, label = TeX("$x_{1+(n-1)n/k,1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 1.3, label = TeX("$x_{1+(n-1)n/k,2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 1.3, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 1.3, label = TeX("$x_{1+(n-1)n/k,p}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 0, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 1, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 2, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 3, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 4, y = 1.0, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#00BFC4") +
+  annotate("text", x = 0, y = 0.7, label = TeX("$n$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 1, y = 0.7, label = TeX("$y_{n}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 2, y = 0.7, label = TeX("$x_{n1}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 3, y = 0.7, label = TeX("$x_{n2}$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 4, y = 0.7, label = TeX("$\\cdots$"), size = 1, color = "#00BFC4") +
+  annotate("text", x = 5, y = 0.7, label = TeX("$x_{np}$"), size = 1, color = "#00BFC4") +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.5, yend = 0.5) +
+  scale_x_continuous("", limits = c(-0.5, 5.5)) +
+  scale_y_continuous("", limits = c(-0.5, 6.5)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+p4 <- ggplot(data = reg_df, aes(x = x, y = y)) +
+  annotate("text", x = 0, y = 6, label = TeX("$i$"), size = 3) +
+  annotate("text", x = 1, y = 6, label = TeX("$y_{i}$"), size = 3) +
+  annotate("text", x = 2, y = 6, label = TeX("$x_{i1}$"), size = 3) +
+  annotate("text", x = 3, y = 6, label = TeX("$x_{i2}$"), size = 3) +
+  annotate("text", x = 4, y = 6, label = TeX("$\\cdots$"), size = 3) +
+  annotate("text", x = 5, y = 6, label = TeX("$x_{ip}$"), size = 3) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.5, yend = 5.5) +
+  annotate("text", x = 0, y = 5.3, label = TeX("$1$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 5.3, label = TeX("$y_{1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 5.3, label = TeX("$x_{11}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 5.3, label = TeX("$x_{12}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 5.3, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 5.3, label = TeX("$x_{1p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 5.0, label = TeX("$2$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 5.0, label = TeX("$y_{2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 5.0, label = TeX("$x_{21}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 5.0, label = TeX("$x_{22}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 5.0, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 5.0, label = TeX("$x_{2p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 4.7, label = TeX("$3$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 4.7, label = TeX("$y_{3}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 4.7, label = TeX("$x_{31}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 4.7, label = TeX("$x_{32}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 4.7, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 4.7, label = TeX("$x_{3p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 1, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 2, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 3, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 4, y = 4.4, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 0, y = 4.1, label = TeX("$n/k$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 4.1, label = TeX("$y_{n/k}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 4.1, label = TeX("$x_{n/k,1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 4.1, label = TeX("$x_{n/k,2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 4.1, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 4.1, label = TeX("$x_{n/k,p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 3.8, label = TeX("$1+n/k$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 3.8, label = TeX("$y_{1+n/k}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 3.8, label = TeX("$x_{1+n/k,1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 3.8, label = TeX("$x_{1+n/k,2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 3.8, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 3.8, label = TeX("$x_{1+n/k,p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 1, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 2, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 3, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 4, y = 3.5, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 0, y = 3.2, label = TeX("$2n/k$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 3.2, label = TeX("$y_{2n/k}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 3.2, label = TeX("$x_{2n/k,1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 3.2, label = TeX("$x_{2n/k,2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 3.2, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 3.2, label = TeX("$x_{2n/k,p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 2.9, label = TeX("$1+2n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 2.9, label = TeX("$y_{1+2n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 2.9, label = TeX("$x_{1+2n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 2.9, label = TeX("$x_{1+2n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 2.9, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 2.9, label = TeX("$x_{1+2n/k,p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 1, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 2, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 3, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 4, y = 2.6, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 0, y = 2.3, label = TeX("$3n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 2.3, label = TeX("$y_{3n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 2.3, label = TeX("$x_{3n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 2.3, label = TeX("$x_{3n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 2.3, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 2.3, label = TeX("$x_{3n/k,p}$"), size = 1, color = "gray") +
+  geom_segment(x = -0.5, xend = 5.5, y = 2.9, yend = 2.9, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 2.6, yend = 2.6, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 2.3, yend = 2.3, color = "gray", size = 0.1) +
+  annotate("text", x = -0.65, y = 2.6, label = paste("Fold ", TeX("$3$"), sep = ""), angle='90', color = "gray", size = 1) +
+  annotate("text", x = 0, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 1, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 2, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 3, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 4, y = 1.95, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 0, y = 1.6, label = TeX("$(n-1)n/k$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 1.6, label = TeX("$y_{(n-1)n/k}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 1.6, label = TeX("$x_{(n-1)n/k,1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 1.6, label = TeX("$x_{(n-1)n/k,2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 1.6, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 1.6, label = TeX("$x_{(n-1)n/k,p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 1.3, label = TeX("$1+(n-1)n/k$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 1.3, label = TeX("$y_{1+(n-1)n/k}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 1.3, label = TeX("$x_{1+(n-1)n/k,1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 1.3, label = TeX("$x_{1+(n-1)n/k,2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 1.3, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 1.3, label = TeX("$x_{1+(n-1)n/k,p}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 0, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 1, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 2, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 3, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 4, y = 1.0, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#7CAE00") +
+  annotate("text", x = 0, y = 0.7, label = TeX("$n$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 1, y = 0.7, label = TeX("$y_{n}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 2, y = 0.7, label = TeX("$x_{n1}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 3, y = 0.7, label = TeX("$x_{n2}$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 4, y = 0.7, label = TeX("$\\cdots$"), size = 1, color = "#7CAE00") +
+  annotate("text", x = 5, y = 0.7, label = TeX("$x_{np}$"), size = 1, color = "#7CAE00") +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.5, yend = 0.5) +
+  scale_x_continuous("", limits = c(-0.5, 5.5)) +
+  scale_y_continuous("", limits = c(-0.5, 6.5)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) 
+
+p5 <- ggplot(data = reg_df, aes(x = x, y = y)) +
+  annotate("text", x = 0, y = 6, label = TeX("$i$"), size = 3) +
+  annotate("text", x = 1, y = 6, label = TeX("$y_{i}$"), size = 3) +
+  annotate("text", x = 2, y = 6, label = TeX("$x_{i1}$"), size = 3) +
+  annotate("text", x = 3, y = 6, label = TeX("$x_{i2}$"), size = 3) +
+  annotate("text", x = 4, y = 6, label = TeX("$\\cdots$"), size = 3) +
+  annotate("text", x = 5, y = 6, label = TeX("$x_{ip}$"), size = 3) +
+  geom_segment(x = -0.5, xend = 5.5, y = 5.5, yend = 5.5) +
+  annotate("text", x = 0, y = 5.3, label = TeX("$1$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 5.3, label = TeX("$y_{1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 5.3, label = TeX("$x_{11}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 5.3, label = TeX("$x_{12}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 5.3, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 5.3, label = TeX("$x_{1p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 5.0, label = TeX("$2$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 5.0, label = TeX("$y_{2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 5.0, label = TeX("$x_{21}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 5.0, label = TeX("$x_{22}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 5.0, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 5.0, label = TeX("$x_{2p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 4.7, label = TeX("$3$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 4.7, label = TeX("$y_{3}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 4.7, label = TeX("$x_{31}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 4.7, label = TeX("$x_{32}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 4.7, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 4.7, label = TeX("$x_{3p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 1, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 2, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 3, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 4, y = 4.4, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 4.4, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 0, y = 4.1, label = TeX("$n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 4.1, label = TeX("$y_{n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 4.1, label = TeX("$x_{n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 4.1, label = TeX("$x_{n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 4.1, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 4.1, label = TeX("$x_{n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 3.8, label = TeX("$1+n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 3.8, label = TeX("$y_{1+n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 3.8, label = TeX("$x_{1+n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 3.8, label = TeX("$x_{1+n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 3.8, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 3.8, label = TeX("$x_{1+n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 1, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 2, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 3, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 4, y = 3.5, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 3.5, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 0, y = 3.2, label = TeX("$2n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 3.2, label = TeX("$y_{2n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 3.2, label = TeX("$x_{2n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 3.2, label = TeX("$x_{2n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 3.2, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 3.2, label = TeX("$x_{2n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 2.9, label = TeX("$1+2n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 2.9, label = TeX("$y_{1+2n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 2.9, label = TeX("$x_{1+2n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 2.9, label = TeX("$x_{1+2n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 2.9, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 2.9, label = TeX("$x_{1+2n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 1, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 2, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 3, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 4, y = 2.6, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 2.6, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 0, y = 2.3, label = TeX("$3n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 2.3, label = TeX("$y_{3n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 2.3, label = TeX("$x_{3n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 2.3, label = TeX("$x_{3n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 2.3, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 2.3, label = TeX("$x_{3n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 1, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 2, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 3, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 4, y = 1.95, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 1.95, label = TeX("$\\cdots$"), size = 1, angle='90', color = "#C77CFF") +
+  annotate("text", x = 0, y = 1.6, label = TeX("$(n-1)n/k$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 1, y = 1.6, label = TeX("$y_{(n-1)n/k}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 2, y = 1.6, label = TeX("$x_{(n-1)n/k,1}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 3, y = 1.6, label = TeX("$x_{(n-1)n/k,2}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 4, y = 1.6, label = TeX("$\\cdots$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 5, y = 1.6, label = TeX("$x_{(n-1)n/k,p}$"), size = 1, color = "#C77CFF") +
+  annotate("text", x = 0, y = 1.3, label = TeX("$1+(n-1)n/k$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 1.3, label = TeX("$y_{1+(n-1)n/k}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 1.3, label = TeX("$x_{1+(n-1)n/k,1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 1.3, label = TeX("$x_{1+(n-1)n/k,2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 1.3, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 1.3, label = TeX("$x_{1+(n-1)n/k,p}$"), size = 1, color = "gray") +
+  annotate("text", x = 0, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 1, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 2, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 3, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 4, y = 1.0, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 1.0, label = TeX("$\\cdots$"), size = 1, angle='90', color = "gray") +
+  annotate("text", x = 0, y = 0.7, label = TeX("$n$"), size = 1, color = "gray") +
+  annotate("text", x = 1, y = 0.7, label = TeX("$y_{n}$"), size = 1, color = "gray") +
+  annotate("text", x = 2, y = 0.7, label = TeX("$x_{n1}$"), size = 1, color = "gray") +
+  annotate("text", x = 3, y = 0.7, label = TeX("$x_{n2}$"), size = 1, color = "gray") +
+  annotate("text", x = 4, y = 0.7, label = TeX("$\\cdots$"), size = 1, color = "gray") +
+  annotate("text", x = 5, y = 0.7, label = TeX("$x_{np}$"), size = 1, color = "gray") +
+  geom_segment(x = -0.5, xend = 5.5, y = 1.3, yend = 1.3, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 1.0, yend = 1.0, color = "gray", size = 0.1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.7, yend = 0.7, color = "gray", size = 0.1) +
+  annotate("text", x = -0.65, y = 1, label = paste("Fold ", TeX("$k$"), sep = ""), angle='90', color = "gray", size = 1) +
+  geom_segment(x = -0.5, xend = 5.5, y = 0.5, yend = 0.5) +
+  scale_x_continuous("", limits = c(-0.5, 5.5)) +
+  scale_y_continuous("", limits = c(-0.5, 6.5)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) 
+
+ggarrange(p1, p2, p3, p4, p5, ncol = 5)
+```
+
+* **There is no scale for CV (of any kind). You have to compare it to the testing error for another model fit from the same data. Smaller values imply the predictions were close to the actual values, which is more desirable.**
+
+# Hypothesis Testing
+
+## Hypothesis Testing 1
+
+Let's take a second to review hypothesis testing for a mean (using a frequentist perspective). 
+
+* We think that some value for a population parameter exists. 
+* We don't have any way to calculate the parameter, but we do have a nice randomly selected sample of the data.
+* Our best guess for the parameter is some estimate/sample statistic. 
+* If we assume a particular value of the parameter, is our sample statistic far enough away to say that the true value of the parameter is significantly different from our assumption?
+
+## Hypothesis Testing 2
+
+In the context of linear regression:
+
+$$H_0: \beta_p = 0$$
+$$H_A: \beta_p \neq 0$$
+
+Saying that the slope is equal to zero is equivalent to saying that there is no relationship between the predictor and response. Saying that the slope is equal to literally anything else implies that there is a linear relationship. 
+
+## Hypothesis Testing 3
+
+* Remember that $b_p$ is a statistic that we use to estimate $\beta_p$--$b_p$ would vary every time we took a new sample . 
+* The quantity that describes this variation is called the standard error. 
+* If we borrow some assumptions from the Central Limit Theorem, we know the sampling distribution for the slope:
+
+$$b_p \sim N(\beta_p, \; \sigma_{b_p})$$
+
+## Hypothesis Testing 4
+
+* We typically don't know the value of $\sigma_{b_p}$, so we estimate it instead. 
+* Then, the sampling distribution is 
+
+$$\frac{b_p - \beta_p}{SE_{b_p}} \sim t_{n-p}$$
+
+* The quantity $t = \frac{b_p - \beta_p}{SE_{b_p}}$ is known as the test statistic. 
+* You can also find the probability of the test statistic occurring under the null hypothesis, also known as the p-value. 
+
+## Hypothesis Testing 5 
+
+* If we observe a p-value of greater than 0.05 (or some other significance level), we would say that the slope is not significantly different from 0 (a.k.a., there is not enough evidence to say that there is a linear relationship between $X$ and $Y$).
+* If we observe a p-value of less than 0.05, we would say that the slope is significantly different from 0 (a.k.a., there is statistically significant evidence that there is a relationship between $X$ and $Y$).
+
+## Hypothesis Testing 6
+
+* You can use the same tools in a logistic regression! 
+* This time, the sampling distribution is:
+
+$$\frac{b_p - \beta_p}{SE_{b_p}} \sim N(0, 1)$$
+
+* Even though the distribution is slightly different, the same process (calculating the test statistic, p-value, comparing to the significance level) applies.
+
+## Resumes Dataset
+
+[Data from 4,870 fictitious resumes](https://vincentarelbundock.github.io/Rdatasets/doc/AER/ResumeNames.html), including the following:
+
+* `name`: factor indicating applicant's first name.
+* `gender`: factor indicating gender.
+* `ethnicity`: factor indicating ethnicity (i.e., Caucasian-sounding vs. African-American sounding first name).
+* `quality`: factor indicating quality of resume.
+* `jobs`: number of jobs listed on resume.
+* `experience`: number of years of work experience on the resume.
+* `call`: factor. Was the applicant called back?
+
+## Implementation in R 
+
+\tiny
+
+```{r}
+resume_model <- glm(as.numeric(call) ~ gender + ethnicity + jobs + experience, family=binomial(link='logit'), 
+                    data = resumes)
+
+summary(resume_model)
+```
+
+\normalsize
+
+## Implementation in Python 1
+
+```{r, echo = FALSE, eval = FALSE}
+py_install(packages = "scikit-learn")
+```
+
+```{python, echo = TRUE}
+import matplotlib.pyplot as plt
+import numpy as np
+import sklearn
+import statsmodels.api as sm
+```
+
+```{python, eval = FALSE}
+#from sklearn.linear_model import LogisticRegression
+#from sklearn.metrics import classification_report, confusion_matrix
+
+#model = LogisticRegression(solver='liblinear', random_state=0)
+#model.fit(X1, Y)
+
+model.intercept_
+model.coef_
+```
+
+```{python, echo = TRUE}
+X1 = r.resumes_num[["gender", "ethnicity", "jobs", "experience"]]
+X1 = sm.add_constant(X1)
+Y = r.resumes_num["call"]
+
+model = sm.Logit(Y, X1)
+```
+
+## Implementation in Python 2
+
+```{python, echo = TRUE}
+m_resumes = model.fit(method='newton')
+
+m_resumes.params
+```
+
+## Implementation in Python 3
+
+\tiny
+
+```{python, echo = TRUE}
+m_resumes.summary2()
+```
+
+\normalsize
+
+## Warnings! 1
+
+* The values of the coefficients, their standard errors, test statistics, and p-values (and therefore, their significance!) from linear and logistic regression models are all dependent on the other variables that are in the model. 
+* This means that you cannot necessarily make decisions about multiple variables at a time using these inference procedures. 
+
+\tiny
+
+```{python, echo = TRUE}
+X2 = r.resumes_num[["ethnicity", "jobs", "experience"]]
+X2 = sm.add_constant(X2)
+
+model2 = sm.Logit(Y, X2)
+
+m_resumes2 = model2.fit(method='newton')
+```
+
+\normalsize
+
+## Warnings! In Practice 1
+
+\tiny
+
+```{python, echo = TRUE}
+m_resumes2.summary2()
+```
+\normalsize
+
+## Warnings! 2
+
+* A significance level of 0.05 or 5% implies that you will make Type I (false positive) errors 5% of the time.
+* When fitting many multiple regression models, you are making a lot of decisions and therefore are likely to make some error. 
+* Instead of using such a high significance level, you should use some multiple testing correction. 
+
+## Warnings! In Practice 2
+
+```{python, echo = TRUE}
+X3 = r.resumes_num.loc[:, r.resumes_num.columns != "call"]
+X3 = sm.add_constant(X3)
+
+model3 = sm.Logit(Y, X3)
+
+m_resumes3 = model3.fit(method='newton')
+```
+
+## Warnings! In Practice 3
+
+\tiny
+
+```{python, echo = TRUE}
+m_resumes3.summary2()
+```
+\normalsize
+
+# LASSO
+
+## Lasso Introduction 1
+
+* In least squares linear regression with $p$ predictors and $n$ data points, estimates of the parameters in the model are calculated by minimization of the least-squares objective function.
+* Typically, all of the least-squares estimates will be nonzero. 
+  * This will make interpretation of the final model challenging if $p$ is large. 
+  * In fact, if $p > N$, the least-squares estimates are not unique. 
+  * There is an infinite set of solutions that make the objective function equal to zero, and these solutions almost surely overfit the data as well.
+  
+## Lasso Introduction 2
+
+* Thus,  there is a need to constrain, or regularize the estimation process ("regularization" can be thought of as constraints on the estimation process). 
+* In the Least Absolute Shrinkage and Selection Operator (LASSO) or $\ell_1$-regularized regression, we estimate the parameters by solving
+the problem
+
+$$\underset{\beta_0, \beta}{\text{minimize}} \sum_{i = 1}^N (y_i - \beta_0 - \sum_{j = 1}^p x_{ij}\beta_j)^2 \text{ subject to } ||\beta||_1 \leq t$$
+
+where $||\beta||_1 \sum_{j = 1}^p |\beta_j|$ is the $\ell_1$ norm of $\beta$ and $t$ is a user specified parameter. 
+
+* "We can think of $t$ as a budget on the total $\ell_1$ norm of the parameter vector, and the lasso finds the best fit within this budget."
+
+## $\ell_1$ Norm
+
+* The lasso specifically uses the $\ell_1$ norm. 
+* You could use any other norm, but it turns out that using the $\ell_1$ solves a few problems for us:
+  + First of all, if the "budget" $t$ is small enough, the lasso "yields sparse solution vectors"--meaning that only a few terms are non-zero. This in turn implies that only the most important features remain in the model!
+  + This does not occur for other norms--the $\ell_1$ norm is the smallest value that gives a convex problem (makes optimization a lot easier--you can even apply these methods to problems with millions of parameters). 
+
+## "Bet on Sparsity" Principle
+
+* The third advantage--
+
+
+
+
+  *Use a procedure that does well in sparse problems, since no procedure does well in dense problems.*
+  
+## Notation Review
+
+$$\underset{\beta_0, \beta}{\text{minimize}} \sum_{i = 1}^N (y_i - \beta_0 - \sum_{j = 1}^p x_{ij}\beta_j)^2 \text{ subject to } ||\beta||_1 \leq t$$
+
+* We can "translate" this equation--under this paradigm, we are looking for the parameters ($\beta_0, \beta$) that *minimize* the loss function ($\sum_{i = 1}^N (y_i - \beta_0 - \sum_{j = 1}^p x_{ij}\beta_j)^2$) under the constraint that the sum of the absolute value of the parameters is less than some value $t$. 
+
+## Reviewing Regularization
+
+* Again, in this context--regularization refers to the fact that there are constraints placed on the parameters during the estimation (optimization) process. 
+* Wikipedia says that "regularization is a process that changes the result to be 'simpler'"--and even though I don't agree with everything that Wikipedia says on the topic of regularization, I think I do at least agree with that! 
+* Why regularize?
+  + Can be used to find a unique solution for the parameters
+  + Can be used to prevent over-fitting
+  + Can be used to create more "parsimonious" models--a.k.a., models with fewer parameters. 
+
+## Regularization Parameter Selection
+
+* As always--things you do when setting up your model/parameter estimation process impact your results. 
+  + Choice of loss function
+  + Choice of matrix norm
+  + Choice of regularization parameter (your "budget" $t$).
+    - If $t$ is too small, you might leave important variables out of your model, resulting in a decrease of accuracy. 
+    - If $t$ is too large, you might let too many variables into your model, resulting in loss of interpretability.
+  
+* How do you choose $t$? Usually cross validation.
+
+## Implementing Lasso 1
+
+1. Randomly select a training and test set.
+
+```{r, echo = TRUE}
+index <- sample(1:dim(resumes_num)[1], 
+                size = 0.7*dim(resumes_num)[1])
+
+resume_train_preds <- resumes_num[index,-5]
+resume_train_response <- resumes_num[index,5]
+
+resume_test_preds <- resumes_num[-index,-5]
+resume_test_response <- resumes_num[-index,5]
+```
+
+## Implementing Lasso 2
+
+2. Transform the data so that the variables are centered at 0 and have variances of 1 (standardized).
+
+```{r, echo = TRUE}
+library(caret)
+
+pre_proc_val <- preProcess(resume_train_preds, 
+                           method = c("center", "scale"))
+resume_train_pp <- predict(pre_proc_val, resume_train_preds)
+resume_test_pp <- predict(pre_proc_val, resume_test_preds)
+```
+
+```{python}
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+resume_train_pp = StandardScaler().fit_transform(r.resume_train_preds)
+resume_test_pp = StandardScaler().fit_transform(r.resume_test_preds)
+```
+
+## Implementing the Lasso 3
+
+3. Choose the regularization parameter. We can't give good advice about how to pick the actual number, but we can give advice about the best way to pick the parameter--cross validation. This is so common it should be automated in most packages.
+
+```{r, echo = TRUE}
+library(glmnet)
+
+reg_parm <- cv.glmnet(x = data.matrix(resume_train_pp), y = resume_train_response, 
+                      family = "binomial", type.measure = "auc")
+
+reg_parm$lambda.min
+```
+
+```{r, echo = FALSE, eval = FALSE}
+py_install(packages = "glmnet_py")
+```
+
+```{python}
+
+```
+
+## Implementing the Lasso 4
+
+4. Use the regularization parameter to fit the model. 
+
+```{r, echo = TRUE}
+resume_lasso <- glmnet(x = data.matrix(resume_train_pp), 
+                       y = resume_train_response, 
+                       alpha = 1, lambda = reg_parm$lambda.min)
+
+resume_lasso$beta
+```
+
+## Implementing the Lasso 5
+
+5. Measure model performance! 
+
+```{r, eval = FALSE}
+train_predictions <- predict(resume_lasso, s = reg_parm$lambda.min, newx = data.matrix(resume_train_pp))
+table(train_predictions > 0.5, resume_train$call)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+test_predictions <- predict(resume_lasso, s = reg_parm$lambda.min, newx = data.matrix(resume_test_pp))
+
+resumes_lasso_auc <- AUC(test_predictions, resume_test_response)
+roc_resumes_lasso <- roc(resume_test_response, test_predictions)
+
+ggroc(roc_resumes) +
+  xlab("Specificity") +
+  ylab("Sensitivity") + 
+  annotate("text", x = 0.4, y = 0.2, label = paste("AUC = ", round(resumes_lasso_auc, digits = 3), sep = " "), size = 4)
+```
+
+## Implementing the Lasso 5
+
+```{r, fig.height = 3, fig.width = 3}
+test_predictions <- predict(resume_lasso, s = reg_parm$lambda.min, newx = data.matrix(resume_test_pp))
+
+resumes_lasso_auc <- AUC(test_predictions, resume_test_response)
+roc_resumes_lasso <- roc(resume_test_response, test_predictions)
+
+ggroc(roc_resumes) +
+  xlab("Specificity") +
+  ylab("Sensitivity") + 
+  annotate("text", x = 0.4, y = 0.2, label = paste("AUC = ", round(resumes_lasso_auc, digits = 3), sep = " "), size = 4)
+```
+
+## Other Models
+
+* Models with Regularization:
+  + Ridge regression (addresses multicollinearity)
+  
+* Lasso
+  + Elastic Net (combination of $\ell_1$ and $\ell_2$ norms)
+  + Group Lasso--leaves whole groups of terms out of the model. IIRC, common in genetic analysis?
+
+## Resources I Used
+
+Text
+
+* [Hastie, Trevor, Robert Tibshirani, and Martin Wainwright. "Statistical learning with sparsity." Monographs on statistics and applied probability 143 (2015): 143.](https://hastie.su.domains/StatLearnSparsity_files/SLS.pdf)
+
+Python Resources
+
+* [`glmnet` module maintained by the creators of the LASSO](https://github.com/bbalasub1/glmnet_python/blob/master/test/example_binomial.py)
+* [StackOverflow proposing various other approaches](https://stackoverflow.com/questions/41639557/how-to-perform-logistic-lasso-in-python)
+
+<!-- https://www.pluralsight.com/guides/linear-lasso-and-ridge-regression-with-r -->
+
+<!-- https://realpython.com/logistic-regression-python/ -->
+
+<!-- https://www.r-bloggers.com/2020/04/how-to-run-pythons-scikit-learn-in-r-in-5-minutes/ -->
+
+<!-- https://github.com/rstudio/reticulate/issues/623 -->
+
+
+
+
