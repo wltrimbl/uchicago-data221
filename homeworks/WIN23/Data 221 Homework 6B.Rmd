@@ -1,0 +1,48 @@
+---
+header-includes:
+   - \usepackage{amsmath,amsthm,amsfonts,amssymb,amscd,enumitem,fancyhdr,fullpage,graphicx,hyperref,lastpage,listings,mathrsfs,xcolor}
+   - \geometry{top=2cm, bottom=4.5cm, left=2.5cm, right=2.5cm}
+   - \usepackage[T1]{fontenc}
+   - \usepackage[font=small,labelfont=bf,tableposition=top]{caption}
+   - \DeclareCaptionLabelFormat{andtable}{#1~#2  \&  \tablename~\thetable}
+   - \setlength{\parindent}{0.0in}
+   - \setlength{\parskip}{0.05in}
+   - \pagestyle{fancyplain}
+   - \headheight 35pt
+   - \lhead{due Thursday, March 2 at 11:59pm}
+   - \chead{\textbf{\Large Homework 6B}}
+   - \rhead{DATA 221 \\ Winter 2023}
+   - \lfoot{}
+   - \cfoot{}
+   - \rfoot{\small\thepage}
+   - \headsep 1.5em
+output:
+  pdf_document:
+    number_section: false
+urlcolor: blue
+---
+
+<!-- \thispagestyle{fancy} -->
+```{r, setup, include=FALSE}
+# Install additional packages if needed:
+# install.packages('kableExtra')
+
+# Load necessary packages
+require(mosaic)
+library(kableExtra)
+#library(mosaic)   # Load additional packages here 
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small",   # slightly smaller font for code
+  cache = TRUE, 
+  echo = FALSE)   
+```
+
+This homework does not have any computation (unless you want it to!). It is mostly a reflection of your time in this course. 
+
+\begin{enumerate}
+  \item Reflect on your homework assignments and the work you did outside of class. Are there any topics that you feel you explored more deeply than the rest of the class did, e.g., an analysis of different penalties in a loss function, exploring the non-uniqueness of coefficients in a large $p$, small $n$ type problem? Did you write an Ed post to help other students solve an issue? If you taught yourself something and feel like you can explain it well to other people, compile the work you did/with the code you produced, with an explanation of the topic you explored and the results you found. It should be polished enough that we could use it in future iterations of the course (if we do find something we would like to use, we will of course ask your permission to use it first). 
+  \item Which topics would you have liked to explore more in Introduction to Machine Learning? Are those same concepts covered in other classes, and if so, is there a different way you would have liked to have seen it covered in our class?
+  \item Are there any different topics that we did not cover at all that you would have wanted to explore more in Introduction to Machine Learning?
+  \item What other things can we do in the future to improve the course? Please give specific examples (e.g., rearranging certain weeks for smoother understanding, etc.). 
+\end{enumerate}

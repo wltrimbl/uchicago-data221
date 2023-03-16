@@ -1,0 +1,64 @@
+---
+header-includes:
+   - \usepackage{amsmath,amsthm,amsfonts,amssymb,amscd,enumitem,fancyhdr,fullpage,graphicx,hyperref,lastpage,listings,mathrsfs,xcolor}
+   - \geometry{top=2cm, bottom=4.5cm, left=2.5cm, right=2.5cm}
+   - \usepackage[T1]{fontenc}
+   - \usepackage[font=small,labelfont=bf,tableposition=top]{caption}
+   - \DeclareCaptionLabelFormat{andtable}{#1~#2  \&  \tablename~\thetable}
+   - \setlength{\parindent}{0.0in}
+   - \setlength{\parskip}{0.05in}
+   - \pagestyle{fancyplain}
+   - \headheight 35pt
+   - \lhead{due Thursday, January 26 at 11:59pm}
+   - \chead{\textbf{\Large Homework 3A}}
+   - \rhead{DATA 221 \\ Winter 2023}
+   - \lfoot{}
+   - \cfoot{}
+   - \rfoot{\small\thepage}
+   - \headsep 1.5em
+output:
+  pdf_document:
+    number_section: false
+urlcolor: blue
+---
+
+<!-- \thispagestyle{fancy} -->
+```{r, setup, include=FALSE}
+# Install additional packages if needed:
+# install.packages('kableExtra')
+
+# Load necessary packages
+require(mosaic)
+library(kableExtra)
+#library(mosaic)   # Load additional packages here 
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small",   # slightly smaller font for code
+  cache = TRUE)   
+```
+
+\section{Credit Card Clients}
+
+The [UCI "Default of Credit Card Clients" data set](https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients) contains various fields describing 30,000 credit card customers in Taiwan in 2005 (Yeh \& Lien, [doi://10.1016/j.eswa.2007.12.020](doi://10.1016/j.eswa.2007.12.020)). 
+
+\begin{enumerate}
+  \item Split the data set 50/50 into a training set and test set.  
+  \item Logistic Regression
+  \begin{enumerate}
+    \item Create several logistic regression models to predict \texttt{default.payment.next.month} (at least 10).   
+    \item Present a summary of the five models that gave the best accuracy on the test set. Which variables did you include, and which ones mattered the most?
+  \end{enumerate}
+  \item Discriminant Analysis
+  \begin{enumerate}
+    \item Predict \texttt{default.payment.next.month} using linear discriminant analysis. 
+    \item Predict \texttt{default.payment.next.month} using quadratic discriminant analysis. 
+  \end{enumerate}
+  \item KNN Classifiers
+  \begin{enumerate}
+    \item Create four different KNN classifiers to predict \texttt{default.payment.next.month} with four different values of $k$. You will have to choose how to measure distance in a vector space that includes indicator variables and payment amounts (\$NT 100k).  
+    \item Present a summary of accuracy on the testing and training data sets for your four KNN classifiers.
+  \end{enumerate}  
+  \item Which of these classifiers would you recommend? Why?
+\end{enumerate}  
+
+

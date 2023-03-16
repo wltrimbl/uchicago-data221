@@ -1,0 +1,63 @@
+---
+header-includes:
+   - \usepackage{amsmath,amsthm,amsfonts,amssymb,amscd,enumitem,fancyhdr,fullpage,graphicx,hyperref,lastpage,listings,mathrsfs,xcolor}
+   - \geometry{top=2cm, bottom=4.5cm, left=2.5cm, right=2.5cm}
+   - \usepackage[T1]{fontenc}
+   - \usepackage[font=small,labelfont=bf,tableposition=top]{caption}
+   - \DeclareCaptionLabelFormat{andtable}{#1~#2  \&  \tablename~\thetable}
+   - \setlength{\parindent}{0.0in}
+   - \setlength{\parskip}{0.05in}
+   - \pagestyle{fancyplain}
+   - \headheight 35pt
+   - \lhead{due Thursday, March 2 at 11:59pm}
+   - \chead{\textbf{\Large Homework 6A}}
+   - \rhead{DATA 221 \\ Winter 2023}
+   - \lfoot{}
+   - \cfoot{}
+   - \rfoot{\small\thepage}
+   - \headsep 1.5em
+output:
+  pdf_document:
+    number_section: false
+urlcolor: blue
+---
+
+<!-- \thispagestyle{fancy} -->
+```{r, setup, include=FALSE}
+# Install additional packages if needed:
+# install.packages('kableExtra')
+
+# Load necessary packages
+require(mosaic)
+library(kableExtra)
+#library(mosaic)   # Load additional packages here 
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small",   # slightly smaller font for code
+  cache = TRUE, 
+  fig.height = 3)   
+```
+
+\section{Random Forest Regression}
+
+This homework uses the same [dataset with over 20,000 recipes from the website Epicurious](https://www.kaggle.com/datasets/hugodarwood/epirecipes/code) as Homework 5A and 5B.
+
+\begin{enumerate}[label=(\alph*)]
+  \setcounter{enumi}{0}
+  \item A step in building a machine learning model that you may have been skipping is the "exploratory data analysis" stage--when you take a look at summary statistics and distributions of the variables in the dataset, as well as exploring relationships between variables. Create a table of the summary statistics (at least the mean and standard deviation) for the numeric variables (\texttt{rating}, \texttt{calories}, \texttt{protein}, \texttt{fat}, and \texttt{sodium}). In addition, plot the distributions of each variables. Briefly describe the distributions.
+  \item Hopefully you've noticed that four of the five distributions are seriously skewed by a handful of extremely large values. The USDA daily recommended intake of these nutrititional variables is as follows:
+  \begin{itemize}
+    \item Calories: 2,000 per day
+    \item Protein: 60 grams per day (for a 165 lb. person)
+    \item Fat: 66 grams per day (for a 2,000 calorie diet)
+    \item Sodium: 2,300 mg per day
+\end{itemize}
+  \item[] While it is reasonable that some recipes may have larger quantities (for example, if the recipe is for a whole cake, not split into smaller serving sizes), and of course, sometimes we eat more than the daily recommended value, there's no reason to have millions of calories in a recipe. Remove any values above 5 times the daily recommended amount, then redo the histograms and briefly describe them. 
+  \item Now, create and briefly describe scatterplots for the following pairs of variables: \texttt{calories} and \texttt{rating}, \texttt{calories} and \texttt{protein}, \texttt{calories} and \texttt{fat}, and \texttt{calories} and \texttt{sodium}.
+  \item Remember that some of the extreme nutritional values are likely related, so we might instead be interested in predicting the calorie count for a recipe based off its ingredients. Remove \texttt{rating}, \texttt{protein}, \texttt{fat}, and \texttt{sodium}. Take a subset of the data--it can be a random sample, or you can get creative and look at a specific subset (e.g., desserts, salads, etc.). Use 70\%  of your subset for training and 30\% for testing. Using the training set, fit at least five random forest regression models, experimenting with the settings such as the number of trees to grow, minimum and maximum number of nodes, etc. Choose a final model and justify your choice.
+  \item[] \textcolor{red}{Note: I fit a model with the default settings in R--specifically, with the number of trees in my forest being equal to 500. By the time all was said and done, it took me about 8 hours of computation time--but the mean squared error stabilized much earlier. I don't want you to have to take this long... there are a few things you can do to speed things up. First, I recommend training with far fewer trees since we are mostly sure the MSE will converge. Second, you can work with a fairly small subset. Make it small enough such that your model fits are taking no longer than 10 minutes. }
+  \item Some random forest routines (including the routine in Scikit-Learn) can calculate something called "feature importance". Use this information to describe twenty ingredients most useful for predicting the calories, and twenty ingredients that are least useful for predicting calories. Within the context of food, do these make sense to you? 
+  \item[] \textcolor{red}{Note: You can also play with feature importance in your model building step (Part c)!}
+  \item Research different modules for visualizing your tree. Try to showcase at least the first five levels. 
+  \item Now, apply your model to the rows you removed from the dataset. Does the random forest help result in more realistic calorie counts?
+\end{enumerate}
