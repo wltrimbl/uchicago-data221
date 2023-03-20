@@ -1,0 +1,159 @@
+\documentclass[12pt]{book}
+
+%These tell TeX which packages to use.
+\usepackage{array,epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsxtra}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{color}
+\usepackage{eurosym}
+\usepackage{times}
+\usepackage{enumitem}
+%Here I define some theorem styles and shortcut commands for symbols I use often
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}{Corollary}
+\newtheorem*{rmk}{Remark}
+\newtheorem{lem}{Lemma}
+\newtheorem*{joke}{Joke}
+\newtheorem{ex}{Example}
+\newtheorem*{soln}{Solution}
+\newtheorem{prop}{Proposition}
+
+\newcommand{\lra}{\longrightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\graph}{\mathrm{graph}}
+\newcommand{\bb}[1]{\mathbb{#1}}
+\newcommand{\Z}{\bb{Z}}
+\newcommand{\Q}{\bb{Q}}
+\newcommand{\R}{\bb{R}}
+\newcommand{\C}{\bb{C}}
+\newcommand{\N}{\bb{N}}
+\newcommand{\M}{\mathbf{M}}
+\newcommand{\m}{\mathbf{m}}
+\newcommand{\MM}{\mathscr{M}}
+\newcommand{\HH}{\mathscr{H}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Ho}{\in\HH(\Om)}
+\newcommand{\bd}{\partial}
+\newcommand{\del}{\partial}
+\newcommand{\bardel}{\overline\partial}
+\newcommand{\textdf}[1]{\textbf{\textsf{#1}}\index{#1}}
+\newcommand{\img}{\mathrm{omega}}
+\newcommand{\ip}[2]{\left\langle{#1},{#2}\right\rangle}
+\newcommand{\inter}[1]{\mathrm{int}{#1}}
+\newcommand{\exter}[1]{\mathrm{ext}{#1}}
+\newcommand{\cl}[1]{\mathrm{cl}{#1}}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\vol}{\mathrm{vol}}
+\newcommand{\cnt}{\mathrm{ct}}
+\newcommand{\osc}{\mathrm{osc}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\UU}{\mathbf{U}}
+\newcommand{\support}{\mathrm{support}}
+\newcommand{\AND}{\;\wedge\;}
+\newcommand{\OR}{\;\vee\;}
+\newcommand{\Oset}{\varnothing}
+\newcommand{\st}{\ni}
+\newcommand{\wh}{\widehat}
+
+%Pagination stuff.
+\setlength{\topmargin}{-.3 in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textheight}{9.in}
+\setlength{\textwidth}{6.5in}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\Large DATA 221 -  Homework 1  - Spring 2023   }\\
+\textbf{Trimble}\\ %You should put your name here
+Due: Friday 2023-03-31  11:59pm
+\end{center}
+
+\vspace{0.2 cm}
+
+\subsection*{Reading:  MacKay Chapter 2 and 3}
+
+\begin{enumerate}
+\item  Henry Newson reported a series of measurements of the decay rates of $^{17}$F produced by deuteron bombardment of oxygen, producing the following measurements of decay rate as a function of time since the accelerator was turned off. (Henry W. Newson.  "The Radioactivity Induced in Oxygen by Deuteron Bombardment." Phys. Rev. 48, 790 (1935) doi:10.1103/PhysRev.48.790)
+
+\begin{tabular}{rr} \\
+time (min) &    Decay rate (arbitrary) \\
+0.161 & 87.1 \\
+0.578 & 69.7 \\
+1.113 & 51.5 \\
+1.584 & 38.3 \\
+2.226 & 25.3 \\
+3.061 & 15.8 \\
+4.324 & 7.6 \\
+6.229 & 2.5 \\
+\end{tabular}
+
+Decays of this source occur at a rate that decays exponentially with time:
+$$ r(t) = A e ^{ - \ln (2) t \over t_{1/2} } + B $$
+We are interested in estimating the decay constant $t_{1/2}$ from observations of the rate.  
+
+The decay rate numbers originate from counts of decays in a fixed time period, but we can't learn exactly how many decays were detected because the count data ("rate") has been modified by an unstated affine transform.
+
+ \begin{enumerate}[label=\alph*)]
+  \item[a.] Find the unweighted least-squares fit for the values of A, B, and $t_{1/2}$.   (Don't use this number!)
+  \item[b.] Weight the sum-squared error terms by (1/sqrt(rate)) and report the fitted values of A, B, and $t_{1/2}$.  
+ \end{enumerate}
+
+\item
+That was a curve-fitting problem where the measured quantities were rates.  Consider a different sort of problem, instead of summing over bins, what if we sum over the data points?
+
+"Unstable particles are emitted from a source and decay at a distance $x$, a real number that has an exponential probability distribution with characteristic length $\lambda$."  In other words, $x$ is exponentially distributed. Let us imagine a magical counter that can measure decays near $x=0$ and decays infinitely far away from the source. The counter observes six events, ${x_n} =  {1.5,2,3,4,5,12}$, and is certain other events occurred. 
+
+The phrase above "exponential probability distribution with characterisic length $\lambda$" is code for "The distances are exponentially distributed according to $p(x) = {{ 1 \over \lambda} e^{x \over \lambda} } $ for $x>0$". 
+
+\begin{enumerate}[label=\alph*)]
+  \item 	Using a prior density that is proportional to ${d\lambda }\over {\lambda}$ (which is the appropriate prior density for a scale parameter), find and plot the posterior density for $\lambda$. 
+  \item  Give a 95\% confidence interval for $\lambda$.
+  \item  Estimate the mean of the posterior density (by numerical integration).
+\end{enumerate}
+Hint:  this problem uses a different parameterization for the exponential distribution than the first; Q1 uses half-life; Q2 uses mean-life, which is ln(2) longer. 
+(Simplifed version of Problem 3.3 from Mackay, p 47.)
+
+\item\label{loadeddie} A die is selected at random from three twenty-faced dice on which the symbols 1–10 are written with non-uniform frequency as follows: 
+
+\begin{tabular} {l r r r r r r r r r r r r r}
+Die & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+A & 6 & 4 & 3 & 2 & 1 & 1 & 1 & 1 & 1 & 0  \\
+B & 3 & 3 & 2 & 2 & 2 & 2 & 2 & 2 & 1 & 1 \\
+E & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 2 \\
+\end{tabular}
+
+A randomly chosen die from A, B, or E is rolled 7 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7. Then, a randomly chosen die from all three is rolled 8 times, with the following outcomes: 5, 3, 9, 3, 8, 4, 7, 10. 
+
+ \begin{enumerate}[label=\alph*)]
+   \item  What are the probabilities that the die is die A, B, or E after the first seven rolls?
+   \item  What are the probabilities that the die is die A, B, or E after rolling the 10?
+   \item  What are the consequences of the zero probability for die A to return a 10 ? 
+   \item  How many rolls on average would you need to establish 99:1 confidence between B and E?  (Hint: there is a theoretical answer (sums over things) but you could get an answer by simulation.)
+ \end{enumerate}  
+
+(Exercise 3.1 from MacKay p.47)
+
+\item  Given a distribution of bigrams in English text, the distribution of the initial letter given the final and that of the final letter given the initial are different.  
+
+ \begin{enumerate}[label=\alph*)] 
+   \item  Reproduce the three figures in Fig 2.1 and 2.3 in MacKay  (Hinton diagrams or heatmaps are fine) using the novella Carmilla by Joseph Sheridan Le Fanu \\
+(\texttt{https://www.gutenberg.org/files/10007/10007-0.txt}).   
+   \item  Count the one-letter tokens.  
+   \item  Split the text into two-letter tokens and count them.  
+   \item  Make a two-dimensional visualization of the bigram frequency, row-marginal, and column-marginal probabilities.  (Hint: one of your visualizations should show that Q is always followed by U) 
+ \end{enumerate}  
+
+\end{enumerate}
+\end{document}
+
+
