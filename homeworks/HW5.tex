@@ -79,13 +79,18 @@ Due: Tuesday 2023-05-02  - 11:59pm
 \vspace{0.2 cm}
 
 
-\begin{enumerate}[label=(\alph*)]
 
-Kaggle user \texttt{hugodarwood} created a [dataset with over 20,000 recipes from the website Epicurious, scraped in 2017](https://www.kaggle.com/datasets/hugodarwood/epirecipes/code). Loosely speaking, there are a few groups of variables in the dataset: nutritional variables (`calories`, `protein`, `fat`, `sodium`),  Ingredient tags (`almond`, `amaretto`, `anchovy`, and so on), Place tags (`alabama`, `alaska`, `aspen`, `australia`, and so forth), and Other tags (`advance.prep.required`, `anthony.bourdain`, etc.).
+Kaggle user \texttt{hugodarwood} created a dataset with over 20,000 recipes from the website Epicurious, scraped in 2017:
+
+\texttt{https://www.kaggle.com/datasets/hugodarwood/epirecipes/code}. 
+
+Loosely speaking, there are a few groups of variables in the dataset: nutritional variables (`calories`, `protein`, `fat`, `sodium`),  Ingredient tags (`almond`, `amaretto`, `anchovy`...), Place tags (`alabama`, `alaska`, `aspen`,...), and Other tags (`advance.prep.required`, `anthony.bourdain`, etc.).
 
 You may want to carry out your own exploratory dataset to a) become familiar with the dataset, and b) carry out some pre-processing on the dataset. You will have to make choices during pre-processing--these choices are up to you. We are happy to offer suggestions during office hours, but as long as you feel that you have made a reasonable choice, we will not take points off.   
 
 Once you have pre-processed the data...
+
+\begin{enumerate}
 
   \item Logistic Regression with $\ell_1$ Regularization
   \begin{enumerate}
@@ -93,20 +98,19 @@ Once you have pre-processed the data...
     \item Plot the regression coefficients as a function of the (logarithm of the) regularization parameter $t$--example on the second page of the assignment. 
     \item Find the optimum regularization parameter $t$ by optimizing for minimum error on a test set.
   \end{enumerate}
-
-  \item Principal Component Analysis 
-  \begin{enumerate}
-    \item Perform Principal Component Analysis (a.k.a., singular value decomposition) on all the features of the dataset. 
-    \item Display scatter plots of the first two principal components, PC1 and PC2, for the two response variable classes. Label the axes with the fraction of the variance explained by PC1 and PC2. 
-    \item Compute a table with the fraction of the variance in each of the first few principal components. How many principal components would you pick?  How many principal components do you need to retain half of the variance of the data?
-  \end{enumerate}
-
-  \item Regression / nutritional information
+  
+\item Regression / nutritional information
   \begin{enumerate}
     \item Train a (linear regression?  neural network?)  model to predict the nutrition information fields from everything else.  
     \item  Evaluate your model on a testing holdout set, report its accuracy, and predict the nutrition information for the rows where nutrition information is missing.
     \item  Which coefficents are the largest?  (Salted?  Fried?  protein-feed-enhanced?)
+  \end{enumerate}
 
+  \item Principal Component Analysis 
+  \begin{enumerate}
+    \item Perform Principal Component Analysis (a.k.a., singular value decomposition) on all the features of the dataset. 
+    \item Make a graph showing the total fraction of variance in the first N principal components.   How many principal components do you need to retain half of the variance of the data?
+    \item Display scatter plots of the first two principal components, PC1 and PC2, for the two response variable classes. Label the axes with the fraction of the variance explained by PC1 and PC2. 
   \end{enumerate}
 
   \item Embedding 
@@ -117,7 +121,7 @@ Once you have pre-processed the data...
     \item Plot the three clusterings in principal coordinates space with the conventional (PC 1, 1.2\%...) labels.
   \end{enumerate}
 
-\includegraphics{images/HASTIE-LASSO.png}
+\includegraphics[width=10cm]{images/HASTIE-LASSO.png}
 
 
 \end{enumerate}
